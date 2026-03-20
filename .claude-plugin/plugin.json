@@ -1,0 +1,12 @@
+{
+  "name": "burrow-claude-plugin",
+  "description": "Claude Code agents specialized for the burrow Go web framework — architecture design, feature development, and code review with deep knowledge of burrow conventions.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Oliver Andrich"
+  },
+  "homepage": "https://github.com/oliverandrich/burrow",
+  "repository": "https://github.com/oliverandrich/burrow-claude-plugin",
+  "keywords": ["burrow", "go", "web-framework", "chi", "bun", "sqlite"],
+  "agents": "./agents/"
+}
