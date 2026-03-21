@@ -30,11 +30,14 @@ You ONLY report issues — you never fix them. Be concise and specific: file pat
 - File serving (staticfiles, uploads): use stdlib `http.Handler`, not `burrow.Handle`
 
 ### Context Helpers
-- Getters use short noun form WITHOUT `FromContext` suffix: `CurrentUser(ctx)`, `Logo(ctx)`, `NavGroups(ctx)`, `Token(ctx)`
+- Getters use short noun form WITHOUT `FromContext` suffix: `Token(ctx)`, `Logo(ctx)`, `NavGroups(ctx)`
+- **Getter gets the clean name, type gets renamed if there's a collision**: `uploads.Storage(ctx)` returns `uploads.Store`, `sse.Broker(ctx)` returns `sse.EventBroker`
+- Exception: `auth.CurrentUser(ctx)` — the `User` type is too deeply embedded to rename
 - Setters use `WithX(ctx, val)` pattern
 - Context keys are unexported struct types: `type ctxKeyFoo struct{}`
 - Each package owns its own context helpers — never put app-specific helpers in the root burrow package
 - Return zero value when key is missing (nil for pointers, "" for strings, nil for slices)
+- Middleware-based injection: apps that provide a value via middleware (session, csrf, sse) inject it into context automatically — users never call `WithX` manually
 
 ### Configuration & Flags
 - Flag names: `{appname}-{property}` in kebab-case (e.g., `auth-login-redirect`, `auth-webauthn-rp-id`)
@@ -77,8 +80,13 @@ You ONLY report issues — you never fix them. Be concise and specific: file pat
 - No mocking of repositories — use real in-memory SQLite
 - Only mock renderer interfaces
 
+### SSE
+- SSE handlers use `sse.ContextHandler("topic")` — broker comes from middleware context, not passed manually
+- SSE handlers return `http.HandlerFunc` directly — do NOT wrap with `burrow.Handle()`
+- Publish via `sse.Broker(r.Context()).Publish("topic", sse.Event{...})`
+- Type is `sse.EventBroker`, getter is `sse.Broker(ctx)` — getter gets the clean name
+
 ### Misc
-- No `FromContext` suffix on new context getters (deprecated pattern)
 - `burrow.RenderContent()` for pre-rendered HTML that needs layout wrapping (not a custom renderWithLayout)
 - Conventional Commits for commit messages
 - No AI attribution in commits or code

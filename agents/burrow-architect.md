@@ -106,6 +106,16 @@ func (d *defaultRenderer) ListPage(...) error {
 ```
 
 ### Context Helper Pattern
+
+**Getter gets the clean name.** If the getter name collides with a type, rename the type — not the getter.
+
+| Getter (used everywhere) | Type (used in declarations) | Why |
+|---|---|---|
+| `uploads.Storage(ctx)` | `uploads.Store` | `Storage` was the interface name |
+| `sse.Broker(ctx)` | `sse.EventBroker` | `Broker` was the struct name |
+| `auth.CurrentUser(ctx)` | `auth.User` | Exception — `User` too deeply embedded |
+| `csrf.Token(ctx)` | `string` | No collision |
+
 ```go
 type ctxKeyFoo struct{}
 
@@ -120,6 +130,8 @@ func WithFoo(ctx context.Context, foo *FooType) context.Context {
     return context.WithValue(ctx, ctxKeyFoo{}, foo)
 }
 ```
+
+Apps that provide context values via middleware (session, csrf, sse) inject them automatically — users never call `WithX` directly.
 
 ### Config Flag Pattern
 ```go

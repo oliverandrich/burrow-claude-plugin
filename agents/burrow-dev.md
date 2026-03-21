@@ -132,10 +132,13 @@ contrib/myapp/
 - Two styles: method receivers on `*Handlers` struct, or closures `func(repo) burrow.HandlerFunc`
 
 ### Context Helpers
-- Getters: short noun form, NO `FromContext` suffix — `CurrentUser(ctx)`, `Token(ctx)`, `NavGroups(ctx)`
+- Getters: short noun form, NO `FromContext` suffix — `Token(ctx)`, `Logo(ctx)`, `NavGroups(ctx)`
+- **Getter gets the clean name, type gets renamed if collision**: `uploads.Storage(ctx)` → `uploads.Store`, `sse.Broker(ctx)` → `sse.EventBroker`
+- Exception: `auth.CurrentUser(ctx)` — `User` type too deeply embedded to rename
 - Setters: `WithX(ctx, val)`
 - Keys: unexported struct types `type ctxKeyFoo struct{}`
 - Return zero value when missing
+- Middleware-based injection: apps providing context values (session, csrf, sse) inject via middleware — users never call `WithX` manually
 
 ### Config Flags
 - Names: `{appname}-{property}` kebab-case
@@ -181,6 +184,12 @@ contrib/myapp/
 - Embedded SQL: `//go:embed migrations` + `fs.Sub(migrationFS, "migrations")`
 - Naming: `001_description.up.sql` — numeric prefix, no down migrations
 - Namespaced by `app.Name()` in `_migrations` table
+
+### SSE
+- SSE handlers use `sse.ContextHandler("topic")` — broker comes from middleware context
+- SSE handlers return `http.HandlerFunc` directly — do NOT wrap with `burrow.Handle()`
+- Publish: `sse.Broker(r.Context()).Publish("topic", sse.Event{Data: "..."})`
+- Type is `sse.EventBroker`, getter is `sse.Broker(ctx)`
 
 ### General
 - Conventional Commits
