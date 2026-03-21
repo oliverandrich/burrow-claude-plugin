@@ -59,4 +59,4 @@ All three agents share deep knowledge of burrow's architecture:
 
 - [Claude Code](https://claude.ai/code) CLI
 - A project using the [burrow](https://github.com/oliverandrich/burrow) framework
-- [beans](https://github.com/beeankha/beans) issue tracker (optional, for work tracking)
+- [beans](https://github.com/hmans/beans) issue tracker (optional, for work tracking)
