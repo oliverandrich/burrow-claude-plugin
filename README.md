@@ -28,6 +28,14 @@ Read-only code reviewer. Checks changes against burrow conventions (handler patt
 @burrow-reviewer Review my changes
 ```
 
+### `burrow-user`
+
+Simulates a developer using burrow for the first time. Reads documentation and mentally follows every step, flagging where it gets stuck, confused, or has to guess. Use to test docs, tutorials, and guides for clarity.
+
+```
+@burrow-user Read the quick start guide and tell me where you get stuck
+```
+
 ## Installation
 
 ```bash

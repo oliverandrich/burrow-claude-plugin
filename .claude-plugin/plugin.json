@@ -1,7 +1,7 @@
 {
   "name": "burrow-claude-plugin",
-  "description": "Claude Code agents specialized for the burrow Go web framework — architecture design, feature development, and code review with deep knowledge of burrow conventions.",
-  "version": "1.0.0",
+  "description": "Claude Code agents specialized for the burrow Go web framework — architecture design, feature development, code review, and user-perspective documentation testing.",
+  "version": "1.1.0",
   "author": {
     "name": "Oliver Andrich"
   },
