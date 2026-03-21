@@ -7,6 +7,5 @@
   },
   "homepage": "https://github.com/oliverandrich/burrow",
   "repository": "https://github.com/oliverandrich/burrow-claude-plugin",
-  "keywords": ["burrow", "go", "web-framework", "chi", "bun", "sqlite"],
-  "agents": "./agents/"
+  "keywords": ["burrow", "go", "web-framework", "chi", "bun", "sqlite"]
 }
