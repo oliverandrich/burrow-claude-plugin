@@ -38,12 +38,20 @@ Simulates a developer using burrow for the first time. Reads documentation and m
 
 ## Installation
 
+First, add the marketplace (one-time setup):
+
+```bash
+/plugin marketplace add oliverandrich/burrow-claude-plugin
+```
+
+Then install the plugin:
+
 ```bash
 # Available in all your projects
-claude plugin install oliverandrich/burrow-claude-plugin --scope user
+/plugin install burrow-claude-plugin --scope user
 
 # Or just for the current project
-claude plugin install oliverandrich/burrow-claude-plugin --scope project
+/plugin install burrow-claude-plugin --scope project
 ```
 
 ## What the agents know
