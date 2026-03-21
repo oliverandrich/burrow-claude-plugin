@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "name": "burrow-marketplace",
+  "description": "Plugins for the burrow Go web framework",
+  "plugins": [
+    {
+      "name": "burrow-claude-plugin",
+      "description": "Claude Code agents specialized for the burrow Go web framework",
+      "source": {
+        "type": "github",
+        "owner": "oliverandrich",
+        "repo": "burrow-claude-plugin"
+      }
+    }
+  ]
+}
