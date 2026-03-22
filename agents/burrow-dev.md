@@ -174,7 +174,7 @@ contrib/myapp/
 - Other funcs: camelCase
 
 ### Testing
-- Use `internal/sqlitetest.OpenDB(t)` for test DBs
+- Use `burrow.TestDB(t)` for test DBs
 - Use testify (`assert`, `require`)
 - No repo mocking — real in-memory SQLite
 - Mock only renderer interfaces

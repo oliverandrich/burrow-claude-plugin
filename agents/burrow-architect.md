@@ -162,7 +162,7 @@ func (a *App) MigrationFS() fs.FS {
 ```go
 func openTestDB(t *testing.T) *bun.DB {
     t.Helper()
-    db := sqlitetest.OpenDB(t)
+    db := burrow.TestDB(t)
     app := New()
     err := burrow.RunAppMigrations(t.Context(), db, app.Name(), app.MigrationFS())
     require.NoError(t, err)

@@ -75,7 +75,7 @@ You ONLY report issues — you never fix them. Be concise and specific: file pat
 - Package doc comment lives in context.go (if it exists) or app.go
 
 ### Testing
-- Use `internal/sqlitetest.OpenDB(t)` for test databases
+- Use `burrow.TestDB(t)` for test databases
 - Use testify (`assert`, `require`)
 - No mocking of repositories — use real in-memory SQLite
 - Only mock renderer interfaces
