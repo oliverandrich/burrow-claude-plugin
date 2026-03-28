@@ -36,9 +36,11 @@ When you produce a blueprint, persist it as a bean so it can be picked up by a d
 3. `Register(cfg *AppConfig)` — receives DB, Registry, Config; instantiate repos, register icons/table names
 4. `Translations` — i18n bundle loads TranslationFS from each app
 5. `Configure(cmd *cli.Command)` — read flag values, create services, wire handlers
-6. `BuildTemplates()` — parse TemplateFS, collect FuncMap/RequestFuncMap
-7. `Middleware()` — global middleware stack assembled
-8. `Routes(r chi.Router)` — HTTP routes registered
+6. `PostConfigure()` — second-pass configuration after all `Configure()` calls complete (e.g., jobs registers handlers here)
+7. `BuildTemplates()` — parse TemplateFS, collect FuncMap/RequestFuncMap
+8. `Middleware()` — global middleware stack assembled
+9. `Routes(r chi.Router)` — HTTP routes registered
+10. `Start(srv *Server)` — post-boot hook for background processes (e.g., jobs starts workers here)
 
 ### New Contrib App Checklist
 When designing a new app, determine which interfaces it needs:
@@ -51,11 +53,13 @@ When designing a new app, determine which interfaces it needs:
 | CLI/ENV/TOML config | `Configurable` | `Flags(...)`, `Configure(cmd)` |
 | HTML templates | `HasTemplates` | `TemplateFS() fs.FS` |
 | Static template funcs | `HasFuncMap` | `FuncMap() template.FuncMap` |
-| Per-request template funcs | `HasRequestFuncMap` | `RequestFuncMap(r) template.FuncMap` |
+| Per-request template funcs | `HasRequestFuncMap` | `RequestFuncMap(ctx context.Context) template.FuncMap` |
 | Embedded static assets | `HasStaticFiles` | `StaticFS() (prefix, fs.FS)` |
 | Admin panel pages | `HasAdmin` | `AdminRoutes(r)`, `AdminNavItems()` |
 | i18n translations | `HasTranslations` | `TranslationFS() fs.FS` |
 | Depends on other apps | `HasDependencies` | `Dependencies() []string` |
+| Second-pass config | `PostConfigurable` | `PostConfigure() error` |
+| Post-boot startup | `Startable` | `Start(srv *Server) error` |
 | Background cleanup | `HasShutdown` | `Shutdown(ctx) error` |
 | Nav bar entries | `HasNavItems` | `NavItems() []NavItem` |
 
@@ -132,6 +136,30 @@ func WithFoo(ctx context.Context, foo *FooType) context.Context {
 ```
 
 Apps that provide context values via middleware (session, csrf, sse) inject them automatically — users never call `WithX` directly.
+
+### Convenience Helpers
+- `burrow.URLParamInt64(r, "id")` — returns `(int64, error)` for numeric URL params
+- `burrow.MustURLParamInt64(r, "id")` — panics on error, use behind validation middleware
+- `auth.MustCurrentUser(ctx)` — returns `*User` or panics, use behind `RequireAuth` middleware
+- `sse.BrokerFromRegistry(registry)` — access SSE broker from Registry without type assertions
+
+### RenderFragment (non-HTTP template rendering)
+For rendering templates outside HTTP handlers (background jobs, SSE, CLI):
+```go
+executor := srv.TemplateExecutor()
+html, err := burrow.RenderFragment(executor, "myapp/fragment", data)
+```
+Apps that need this after boot should implement `Startable` to receive `*Server`.
+
+### HTMX Response Helpers
+- `htmx.SmartRedirect(w, r, url)` — uses `HX-Redirect` for htmx requests, `http.Redirect` for normal requests
+- `htmx.RenderOrRedirect(w, r, url, renderFn)` — renders for htmx, redirects for normal requests
+- `htmx.Reselect(w, selector)` — sets `HX-Reselect` header
+- `htmx.StatusStopPolling` — 286 status code to stop htmx polling
+
+### CSRF + HTMX Integration
+- `{{ csrfHxHeaders }}` template function — renders `hx-headers='{"X-CSRF-Token":"..."}'` on any element (typically `<body>`)
+- `csrfToken`, `csrfField`, `csrfHxHeaders` are always available (return empty when csrf app is not registered)
 
 ### Config Flag Pattern
 ```go

@@ -63,7 +63,7 @@ You ONLY report issues — you never fix them. Be concise and specific: file pat
 ### Templates
 - Namespace: `{{ define "appname/templatename" }}`
 - Static functions → `HasFuncMap`
-- Request-scoped functions → `HasRequestFuncMap`
+- Request-scoped functions → `HasRequestFuncMap` (takes `context.Context`, not `*http.Request`)
 - Icons → `AppConfig.RegisterIconFunc()`
 - Template function names: camelCase (`csrfToken`, `staticURL`, `currentUser`)
 - Icon function names: `icon` + PascalCase (`iconGearFill`, `iconTrash`)
@@ -79,6 +79,20 @@ You ONLY report issues — you never fix them. Be concise and specific: file pat
 - Use testify (`assert`, `require`)
 - No mocking of repositories — use real in-memory SQLite
 - Only mock renderer interfaces
+
+### HTMX Responses
+- Use `htmx.SmartRedirect(w, r, url)` instead of manual htmx detection + redirect branching
+- Use `htmx.RenderOrRedirect(w, r, url, renderFn)` for dual htmx/normal responses
+- Use `{{ csrfHxHeaders }}` on `<body>` for automatic CSRF in htmx requests — don't add manual hx-headers
+
+### Convenience Helpers
+- Use `burrow.URLParamInt64(r, "id")` instead of manual `strconv.ParseInt(chi.URLParam(r, "id"), ...)`
+- Use `auth.MustCurrentUser(ctx)` behind `RequireAuth` middleware — don't nil-check `auth.CurrentUser(ctx)` after RequireAuth
+- Use `sse.BrokerFromRegistry(registry)` instead of type-asserting `registry.App("sse")`
+
+### RenderFragment
+- For template rendering outside HTTP handlers (jobs, SSE), use `burrow.RenderFragment(executor, name, data)`
+- Apps needing `TemplateExecutor` after boot should implement `Startable`, not store it during `Configure()`
 
 ### SSE
 - SSE handlers use `sse.ContextHandler("topic")` — broker comes from middleware context, not passed manually
