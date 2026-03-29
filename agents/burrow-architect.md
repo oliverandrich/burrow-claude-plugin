@@ -33,14 +33,14 @@ When you produce a blueprint, persist it as a bean so it can be picked up by a d
 ### App Lifecycle (boot sequence order)
 1. `NewServer()` — apps added to Registry, sorted by dependencies
 2. `RunMigrations()` — each Migratable app's SQL files run
-3. `Register(cfg *AppConfig)` — receives DB, Registry, Config; instantiate repos, register icons/table names
-4. `Translations` — i18n bundle loads TranslationFS from each app
-5. `Configure(cmd *cli.Command)` — read flag values, create services, wire handlers
-6. `PostConfigure()` — second-pass configuration after all `Configure()` calls complete (e.g., jobs registers handlers here)
+3. `Translations` — i18n bundle loads TranslationFS from each app
+4. `Configure(cfg *AppConfig, cmd *cli.Command)` — receives DB, Registry, Config, CLI flags; instantiate repos, register icons, create services, wire handlers
+5. `PostConfigure(cfg *AppConfig, cmd *cli.Command)` — second-pass configuration after all `Configure()` calls complete (e.g., jobs registers handlers here)
+6. `Seed()` — seed database with initial data
 7. `BuildTemplates()` — parse TemplateFS, collect FuncMap/RequestFuncMap
 8. `Middleware()` — global middleware stack assembled
 9. `Routes(r chi.Router)` — HTTP routes registered
-10. `Start(srv *Server)` — post-boot hook for background processes (e.g., jobs starts workers here)
+10. `Start(srv *Server)` — post-boot hook for background processes (e.g., jobs starts workers, auth starts cleanup)
 
 ### New Contrib App Checklist
 When designing a new app, determine which interfaces it needs:
@@ -50,7 +50,8 @@ When designing a new app, determine which interfaces it needs:
 | Database tables | `Migratable` | `MigrationFS() fs.FS` |
 | HTTP endpoints | `HasRoutes` | `Routes(r chi.Router)` |
 | Global middleware | `HasMiddleware` | `Middleware() []func(http.Handler) http.Handler` |
-| CLI/ENV/TOML config | `Configurable` | `Flags(...)`, `Configure(cmd)` |
+| CLI/ENV/TOML flags | `HasFlags` | `Flags(configSource) []cli.Flag` |
+| App setup | `Configurable` | `Configure(cfg *AppConfig, cmd *cli.Command) error` |
 | HTML templates | `HasTemplates` | `TemplateFS() fs.FS` |
 | Static template funcs | `HasFuncMap` | `FuncMap() template.FuncMap` |
 | Per-request template funcs | `HasRequestFuncMap` | `RequestFuncMap(ctx context.Context) template.FuncMap` |
@@ -58,7 +59,7 @@ When designing a new app, determine which interfaces it needs:
 | Admin panel pages | `HasAdmin` | `AdminRoutes(r)`, `AdminNavItems()` |
 | i18n translations | `HasTranslations` | `TranslationFS() fs.FS` |
 | Depends on other apps | `HasDependencies` | `Dependencies() []string` |
-| Second-pass config | `PostConfigurable` | `PostConfigure() error` |
+| Second-pass config | `PostConfigurable` | `PostConfigure(cfg *AppConfig, cmd *cli.Command) error` |
 | Post-boot startup | `Startable` | `Start(srv *Server) error` |
 | Background cleanup | `HasShutdown` | `Shutdown(ctx) error` |
 | Nav bar entries | `HasNavItems` | `NavItems() []NavItem` |
@@ -66,7 +67,7 @@ When designing a new app, determine which interfaces it needs:
 ### File Layout for a Contrib App
 ```
 contrib/myapp/
-  app.go           — App struct, New(), Name(), Register(), optional interfaces
+  app.go           — App struct, New(), Name(), Configure(), optional interfaces
   context.go       — Package doc comment, context key types, WithX()/X() helpers
   handlers.go      — HTTP handlers (burrow.HandlerFunc or method receivers)
   middleware.go     — Middleware functions
@@ -89,7 +90,7 @@ contrib/myapp/
 
 ### Repository Design
 - One `Repository` struct per app, holds `*bun.DB`
-- Instantiate in `Register()`: `a.repo = NewRepository(cfg.DB)`
+- Instantiate in `Configure()`: `a.repo = NewRepository(cfg.DB)`
 - Wire into handlers in `Configure()`: `a.handlers = NewHandlers(a.repo, ...)`
 - Get* methods: check `sql.ErrNoRows` → return `ErrNotFound`
 - No interfaces for repos — concrete types, tested against real SQLite
