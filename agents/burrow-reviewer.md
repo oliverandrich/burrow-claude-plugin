@@ -47,11 +47,11 @@ You ONLY report issues — you never fix them. Be concise and specific: file pat
 - Read flags in `Configure()` via `cmd.String("flag-name")`
 
 ### Repository & Data Layer
-- Concrete structs (no interface): `type Repository struct { db *bun.DB }`
-- Constructor: `NewRepository(db *bun.DB) *Repository`
-- Get* methods that query single rows: explicitly check `errors.Is(err, sql.ErrNoRows)` and return `ErrNotFound`
+- Concrete structs (no interface): `type Repository struct { db *den.DB }`
+- Constructor: `NewRepository(db *den.DB) *Repository`
+- Get* methods that query single rows: explicitly check `errors.Is(err, den.ErrNotFound)` and return `ErrNotFound`
 - Wrap other errors with context: `fmt.Errorf("operation description: %w", err)`
-- Models: embed `bun.BaseModel` with table name and alias tag
+- Models: embed `document.Base` (provides ID, timestamps)
 - Always qualify column names with `?TableAlias` in queries that use `.Relation()` JOINs
 
 ### Renderer Interfaces
@@ -86,7 +86,7 @@ You ONLY report issues — you never fix them. Be concise and specific: file pat
 - Use `{{ csrfHxHeaders }}` on `<body>` for automatic CSRF in htmx requests — don't add manual hx-headers
 
 ### Convenience Helpers
-- Use `burrow.URLParamInt64(r, "id")` instead of manual `strconv.ParseInt(chi.URLParam(r, "id"), ...)`
+- Use `chi.URLParam(r, "id")` for URL params — IDs are ULID strings, not int64
 - Use `auth.MustCurrentUser(ctx)` behind `RequireAuth` middleware — don't nil-check `auth.CurrentUser(ctx)` after RequireAuth
 - Use `sse.BrokerFromRegistry(registry)` instead of type-asserting `registry.App("sse")`
 
@@ -111,7 +111,7 @@ You ONLY report issues — you never fix them. Be concise and specific: file pat
 ## Review: {summary}
 
 ### Must Fix
-- `path/to/file.go:42` — GetFooByID doesn't check sql.ErrNoRows before wrapping error
+- `path/to/file.go:42` — GetFooByID doesn't check den.ErrNotFound before wrapping error
 
 ### Should Fix
 - `path/to/file.go:15` — Flag name `foo-bar` should be `myapp-foo-bar`

@@ -77,7 +77,7 @@ A feature is NOT done until all documentation is updated:
 
 ### App Lifecycle (boot sequence order)
 1. `NewServer()` — apps added to Registry, sorted by dependencies
-2. `RunMigrations()` — each Migratable app's SQL files run
+2. `RegisterDocuments()` — each HasDocuments app's document types registered
 3. `Translations` — i18n bundle loads TranslationFS from each app
 4. `Configure(cfg *AppConfig, cmd *cli.Command)` — receives DB, Registry, Config, CLI flags; instantiate repos, register icons, create services, wire handlers
 5. `PostConfigure(cfg *AppConfig, cmd *cli.Command)` — second-pass configuration after all `Configure()` calls complete (e.g., jobs registers handlers here)
@@ -90,7 +90,7 @@ A feature is NOT done until all documentation is updated:
 ### Interface Checklist
 | Need | Interface | Methods |
 |------|-----------|---------|
-| Database tables | `Migratable` | `MigrationFS() fs.FS` |
+| Document types | `HasDocuments` | `Documents() []any` |
 | HTTP endpoints | `HasRoutes` | `Routes(r chi.Router)` |
 | Global middleware | `HasMiddleware` | `Middleware() []func(http.Handler) http.Handler` |
 | CLI/ENV/TOML flags | `HasFlags` | `Flags(configSource) []cli.Flag` |
@@ -114,12 +114,11 @@ contrib/myapp/
   context.go       — Package doc comment, context key types, WithX()/X() helpers
   handlers.go      — HTTP handlers (burrow.HandlerFunc or method receivers)
   middleware.go     — Middleware functions
-  models.go        — Bun model structs
-  repository.go    — Repository struct with *bun.DB
+  models.go        — Den document structs
+  repository.go    — Repository struct with *den.DB
   services.go      — Service interfaces and implementations
   renderer.go      — Renderer interface + default implementation
   templates/       — .html files with {{ define "myapp/..." }}
-  migrations/      — 001_initial.up.sql, 002_next.up.sql
   translations/    — active.en.toml, active.de.toml
   static/          — CSS/JS assets
   myapp_test.go    — Tests
@@ -152,19 +151,18 @@ contrib/myapp/
 - Always use `burrow.FlagSources(configSource, envVar, tomlKey)`
 
 ### Repository
-- Concrete struct, no interface: `type Repository struct { db *bun.DB }`
-- Constructor: `NewRepository(db *bun.DB) *Repository`
+- Concrete struct, no interface: `type Repository struct { db *den.DB }`
+- Constructor: `NewRepository(db *den.DB) *Repository`
 - Instantiate repos and wire into handlers in `Configure()`
-- Get* single-row methods: check `errors.Is(err, sql.ErrNoRows)` → return `ErrNotFound`
+- Get* single-row methods: check `errors.Is(err, den.ErrNotFound)` → return `ErrNotFound`
 - Wrap errors: `fmt.Errorf("description: %w", err)`
 - Qualify columns with `?TableAlias` in queries using `.Relation()`
 
 ### Models
-- Embed `bun.BaseModel` with table name and alias: `` `bun:"table:items,alias:i"` ``
-- PK: `ID int64` with `` `bun:",pk,autoincrement"` ``
-- CreatedAt: `` `bun:",nullzero,notnull,default:current_timestamp"` ``
-- UpdatedAt: `` `bun:",nullzero"` ``
-- Multi-tag: `bun:`, `json:`, `form:`, `validate:`, `verbose:`
+- Embed `document.Base` (provides ID, CreatedAt, UpdatedAt, Rev)
+- `json` tag for field name, `den` tag for options only (index, unique, fts, omitempty)
+- IDs are ULID strings, not int64
+- Multi-tag: `json:`, `den:`, `form:`, `validate:`, `verbose:`
 
 ### Renderer
 - Interface methods: `(w http.ResponseWriter, r *http.Request, ...) error`
@@ -185,14 +183,12 @@ contrib/myapp/
 - Mock only renderer interfaces
 - Compile-time interface assertions in test files
 
-### Migrations
-- Embedded SQL: `//go:embed migrations` + `fs.Sub(migrationFS, "migrations")`
-- Naming: `001_description.up.sql` — numeric prefix, no down migrations
-- Namespaced by `app.Name()` in `_migrations` table
+### HasDocuments
+- Implement `Documents() []any` returning pointers to document structs
+- Den handles schema automatically — no SQL migration files needed
 
 ### Convenience Helpers
-- `burrow.URLParamInt64(r, "id")` — returns `(int64, error)` for numeric URL params
-- `burrow.MustURLParamInt64(r, "id")` — panics on error, use behind validation middleware
+- `chi.URLParam(r, "id")` — returns string ID from URL params (IDs are ULID strings)
 - `auth.MustCurrentUser(ctx)` — returns `*User` or panics, use behind `RequireAuth` middleware
 - `sse.BrokerFromRegistry(registry)` — access SSE broker from Registry without type assertions
 

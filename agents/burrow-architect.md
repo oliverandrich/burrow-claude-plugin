@@ -32,7 +32,7 @@ When you produce a blueprint, persist it as a bean so it can be picked up by a d
 
 ### App Lifecycle (boot sequence order)
 1. `NewServer()` — apps added to Registry, sorted by dependencies
-2. `RunMigrations()` — each Migratable app's SQL files run
+2. `RegisterDocuments()` — each HasDocuments app's document types registered
 3. `Translations` — i18n bundle loads TranslationFS from each app
 4. `Configure(cfg *AppConfig, cmd *cli.Command)` — receives DB, Registry, Config, CLI flags; instantiate repos, register icons, create services, wire handlers
 5. `PostConfigure(cfg *AppConfig, cmd *cli.Command)` — second-pass configuration after all `Configure()` calls complete (e.g., jobs registers handlers here)
@@ -47,7 +47,7 @@ When designing a new app, determine which interfaces it needs:
 
 | Need | Interface | Methods |
 |------|-----------|---------|
-| Database tables | `Migratable` | `MigrationFS() fs.FS` |
+| Document types | `HasDocuments` | `Documents() []any` |
 | HTTP endpoints | `HasRoutes` | `Routes(r chi.Router)` |
 | Global middleware | `HasMiddleware` | `Middleware() []func(http.Handler) http.Handler` |
 | CLI/ENV/TOML flags | `HasFlags` | `Flags(configSource) []cli.Flag` |
@@ -71,12 +71,11 @@ contrib/myapp/
   context.go       — Package doc comment, context key types, WithX()/X() helpers
   handlers.go      — HTTP handlers (burrow.HandlerFunc or method receivers)
   middleware.go     — Middleware functions
-  models.go        — Bun model structs
-  repository.go    — Repository struct with *bun.DB
+  models.go        — Den document structs
+  repository.go    — Repository struct with *den.DB
   services.go      — Service interfaces and implementations
   renderer.go      — Renderer interface + default implementation
   templates/       — .html files with {{ define "myapp/..." }}
-  migrations/      — 001_initial.up.sql, 002_next.up.sql
   translations/    — active.en.toml, active.de.toml
   static/          — CSS/JS assets
   myapp_test.go    — Tests
@@ -89,10 +88,10 @@ contrib/myapp/
 - **File serving**: stdlib `http.FileServer`, not `burrow.Handle()`
 
 ### Repository Design
-- One `Repository` struct per app, holds `*bun.DB`
+- One `Repository` struct per app, holds `*den.DB`
 - Instantiate in `Configure()`: `a.repo = NewRepository(cfg.DB)`
 - Wire into handlers in `Configure()`: `a.handlers = NewHandlers(a.repo, ...)`
-- Get* methods: check `sql.ErrNoRows` → return `ErrNotFound`
+- Get* methods: check `den.ErrNotFound` → return `ErrNotFound`
 - No interfaces for repos — concrete types, tested against real SQLite
 
 ### Renderer Pattern (for customizable UI)
@@ -139,8 +138,7 @@ func WithFoo(ctx context.Context, foo *FooType) context.Context {
 Apps that provide context values via middleware (session, csrf, sse) inject them automatically — users never call `WithX` directly.
 
 ### Convenience Helpers
-- `burrow.URLParamInt64(r, "id")` — returns `(int64, error)` for numeric URL params
-- `burrow.MustURLParamInt64(r, "id")` — panics on error, use behind validation middleware
+- `chi.URLParam(r, "id")` — returns string ID from URL params (IDs are ULID strings)
 - `auth.MustCurrentUser(ctx)` — returns `*User` or panics, use behind `RequireAuth` middleware
 - `sse.BrokerFromRegistry(registry)` — access SSE broker from Registry without type assertions
 
@@ -176,25 +174,19 @@ func (a *App) Flags(configSource func(key string) cli.ValueSource) []cli.Flag {
 }
 ```
 
-### Migration Pattern
+### HasDocuments Pattern
 ```go
-//go:embed migrations
-var migrationFS embed.FS
-
-func (a *App) MigrationFS() fs.FS {
-    sub, _ := fs.Sub(migrationFS, "migrations")
-    return sub
+func (a *App) Documents() []any {
+    return []any{&Item{}, &Category{}}
 }
 ```
 
 ### Testing Pattern
 ```go
-func openTestDB(t *testing.T) *bun.DB {
+func openTestDB(t *testing.T) *den.DB {
     t.Helper()
     db := burrow.TestDB(t)
-    app := New()
-    err := burrow.RunAppMigrations(t.Context(), db, app.Name(), app.MigrationFS())
-    require.NoError(t, err)
+    den.Register(t.Context(), db, &Item{}, &Category{})
     return db
 }
 ```
@@ -214,11 +206,11 @@ func openTestDB(t *testing.T) *bun.DB {
 
 ### Files to Create/Modify
 1. `contrib/myapp/app.go` — App struct, Register, Configure
-2. `contrib/myapp/models.go` — MyModel with bun tags
+2. `contrib/myapp/models.go` — MyModel with den tags
 3. ...
 
 ### Data Model
-{SQL schema for migrations, Bun model structs with tags}
+{Document structs with json/den tags, automatic schema}
 
 ### API / Routes
 | Method | Path | Handler | Response |

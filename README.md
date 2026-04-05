@@ -47,6 +47,15 @@ Read-only architecture advisor. Designs implementation blueprints, persists them
 
 Read-only code reviewer. Checks changes against burrow conventions and reports violations by severity.
 
+### `burrow-den-expert`
+
+Deep knowledge of Den, Burrow's object-document mapper. Other agents consult this expert for Den API questions, query patterns, document modeling, relations, migrations, and backend differences.
+
+```
+@burrow-den-expert How do I model a many-to-many relationship with Den?
+@burrow-den-expert What's the best way to do a bulk update with conditions?
+```
+
 ### `burrow-user`
 
 Simulates a first-time burrow developer. Reads documentation step by step and flags where it gets stuck, confused, or has to guess.
@@ -78,11 +87,11 @@ Then install the plugin:
 All agents share deep knowledge of burrow's architecture:
 
 - App lifecycle and boot sequence
-- All optional interfaces (`Migratable`, `HasRoutes`, `Configurable`, etc.)
+- All optional interfaces (`HasDocuments`, `HasRoutes`, `Configurable`, etc.)
 - Handler patterns (SSR, JSON API, HTMX row actions, file serving)
 - Context helper naming conventions
 - Configuration flag naming (`{appname}-{property}`)
-- Repository pattern with Bun/SQLite
+- Repository pattern with Den (SQLite + PostgreSQL)
 - Model struct tag conventions
 - Renderer interface pattern
 - Template namespacing and function registration

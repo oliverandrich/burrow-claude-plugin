@@ -54,7 +54,7 @@ Based on research and user input, produce a blueprint covering:
 - **Overview**: What and why (1-2 sentences)
 - **Interfaces Implemented**: Which burrow interfaces the app needs
 - **Files to Create/Modify**: Concrete file list with purpose
-- **Data Model**: SQL schema + Bun model structs (if applicable)
+- **Data Model**: Den document structs with json/den tags (if applicable)
 - **Routes**: Method, path, handler, response type
 - **Context Helpers**: WithX/X patterns needed
 - **Configuration**: Flag names, env vars, TOML keys, defaults
