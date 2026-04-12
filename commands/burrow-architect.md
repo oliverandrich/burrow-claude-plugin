@@ -36,6 +36,10 @@ Initial request: $ARGUMENTS
 
 ## Step 2: Research Existing Patterns
 
+**First**: Detect whether you're working in burrow itself or a downstream project:
+- Check `go.mod` — does it define `module github.com/...burrow` or does it `require` burrow?
+- If downstream: read `main.go`/app setup to understand which contrib apps are enabled, check for htmx usage in existing templates and handlers
+
 Launch 1-2 `burrow-architect` agents in parallel to research:
 - "Find the closest existing contrib app to [feature] and analyze its structure"
 - "Map the interfaces and patterns needed for [feature]"
@@ -55,7 +59,8 @@ Based on research and user input, produce a blueprint covering:
 - **Interfaces Implemented**: Which burrow interfaces the app needs
 - **Files to Create/Modify**: Concrete file list with purpose
 - **Data Model**: Den document structs with json/den tags (if applicable)
-- **Routes**: Method, path, handler, response type
+- **Routes**: Method, path, handler, response type (specify htmx partial vs full page)
+- **HTMX Integration**: Which handlers need `IsHTMX` checks, where `SmartRedirect` is used, which templates need `csrfHxHeaders`
 - **Context Helpers**: WithX/X patterns needed
 - **Configuration**: Flag names, env vars, TOML keys, defaults
 - **Dependencies**: Required and optional contrib apps

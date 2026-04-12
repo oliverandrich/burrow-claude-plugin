@@ -20,6 +20,18 @@ Before designing, fetch the current framework and ODM documentation:
 
 Fetch these via `WebFetch` at the start of every task. They contain the authoritative API reference, interface tables, boot sequence, conventions, and contrib app details. Do NOT rely on memory or inline summaries — always fetch the current docs.
 
+If WebFetch fails or returns an error, inform the user and ask how to proceed. Do NOT continue without documentation — your knowledge of burrow internals may be outdated.
+
+### Targeted Documentation Usage
+
+After fetching, scan for the sections relevant to your task:
+- **New contrib app**: Search for "HasRoutes", "HasDocuments", "Configure(", "AppConfig"
+- **Handlers/Routes**: Search for "HandlerFunc", "Handle(", "SmartRedirect", "RenderContent"
+- **Templates**: Search for "HasFuncMap", "HasRequestFuncMap", `define "`, "Render"
+- **htmx integration**: Search for "htmx", "IsHTMX", "SmartRedirect", "csrfHxHeaders", "SSE"
+- **Config/Flags**: Search for "FlagSources", "flag.String"
+- **Database/Den**: Search for "QuerySet", "Where", "ErrNotFound", "HasDocuments"
+
 ## Work Tracking with Beans
 
 When you produce a blueprint, persist it as a bean so it can be picked up by a developer (or the `burrow-dev` agent) later:
@@ -29,14 +41,34 @@ When you produce a blueprint, persist it as a bean so it can be picked up by a d
 3. If the feature is large, create child beans for sub-tasks: `beans create "Sub-task" -t task --parent <id> -s todo`
 4. Leave the bean in `draft` status — the implementer sets it to `in-progress` when they start
 
+## Working in Downstream Projects
+
+When the working directory is NOT the burrow repository itself (check `go.mod`):
+
+1. Read `go.mod` to check the burrow version and which contrib packages are imported
+2. Read the project's app setup to see which contrib apps are enabled
+3. Check for existing templates and handlers to understand the project's conventions
+4. Design blueprints that integrate with the project's existing patterns — especially htmx usage, template layout, and navigation structure
+
+## HTMX Considerations in Blueprints
+
+Burrow projects are htmx-first. Every blueprint MUST account for:
+
+- **Partial vs full render**: Handlers need to check `htmx.IsHTMX(r)` and return fragments or full pages accordingly
+- **Smart redirects**: Specify `htmx.SmartRedirect` for all post-action redirects, never raw `http.Redirect`
+- **CSRF**: Any template with `hx-post/put/patch/delete` needs `{{ csrfHxHeaders }}`
+- **Navigation**: New pages should use `hx-boost` for link navigation
+- **SSE handlers**: Must NOT be wrapped in `burrow.Handle()` — note this explicitly in the blueprint
+
 ## How You Work
 
 1. **Understand the request**: Ask clarifying questions if requirements are ambiguous
 2. **Fetch documentation**: Load the Burrow and Den llms-full.txt docs
-3. **Research existing patterns**: Read relevant existing code to find the closest analogues
-4. **Design the solution**: Produce a blueprint following the format below
-5. **Validate against conventions**: Cross-check every design decision against the fetched docs
-6. **Persist as bean**: Save the blueprint to a bean so it survives across sessions
+3. **Detect project type**: Check `go.mod` — are we in burrow itself or a downstream project?
+4. **Research existing patterns**: Read relevant existing code to find the closest analogues
+5. **Design the solution**: Produce a blueprint following the format below
+6. **Validate against conventions**: Cross-check every design decision against the fetched docs
+7. **Persist as bean**: Save the blueprint to a bean so it survives across sessions
 
 ## Blueprint Output Format
 

@@ -40,13 +40,15 @@ Initial request: $ARGUMENTS
 **Goal**: Understand relevant existing code and patterns
 
 **Actions**:
-1. Launch 2-3 `burrow-architect` agents in parallel, each targeting a different aspect:
+1. **Detect project type**: Check `go.mod` — are we in burrow itself or a downstream project?
+   - If downstream: read app setup, check which contrib apps are enabled, examine existing htmx usage in templates/handlers
+2. Launch 2-3 `burrow-architect` agents in parallel, each targeting a different aspect:
    - "Find existing contrib apps similar to [feature] and trace their implementation"
    - "Map the architecture and interfaces relevant to [feature area]"
    - "Analyze patterns for [specific aspect: handlers, templates, config, etc.]"
-2. Each agent should return a list of 5-10 key files to read
-3. Read all files identified by agents to build deep understanding
-4. Append findings to the bean body under `## Research`
+3. Each agent should return a list of 5-10 key files to read
+4. Read all files identified by agents to build deep understanding
+5. Append findings to the bean body under `## Research`
 
 ---
 
@@ -96,6 +98,17 @@ If the user says "whatever you think is best", provide your recommendation and g
    - `go test ./...`
    - `golangci-lint run ./...`
 4. Update bean todo items as you progress
+
+### HTMX Implementation Checklist
+
+For every handler that renders HTML, verify:
+- [ ] Checks `htmx.IsHTMX(r)` to decide partial vs full page render
+- [ ] Uses `htmx.SmartRedirect(w, r, url)` instead of `http.Redirect`
+- [ ] Templates with `hx-post/put/patch/delete` include `{{ csrfHxHeaders }}`
+- [ ] Navigation links use `hx-boost="true"`
+- [ ] Form handlers target specific elements via `hx-target`
+- [ ] Validation errors re-render the form fragment, don't redirect
+- [ ] SSE handlers are NOT wrapped in `burrow.Handle()`
 
 ---
 

@@ -33,8 +33,10 @@ Initial request: $ARGUMENTS
 ## Step 2: Quick Context
 
 Before launching the reviewer, quickly check:
-1. Run the appropriate `git diff` to see what changed
-2. Briefly summarize the scope to the user: number of files, which packages, what kind of changes
+1. **Detect project type**: Check `go.mod` — burrow itself or downstream project?
+2. If downstream: check if htmx contrib is imported (htmx checks must be applied strictly)
+3. Run the appropriate `git diff` to see what changed
+4. Briefly summarize the scope to the user: number of files, which packages, what kind of changes
 
 Ask: "Ready to review, or do you want to adjust the scope?"
 
@@ -45,6 +47,7 @@ Ask: "Ready to review, or do you want to adjust the scope?"
 Launch a `burrow-reviewer` agent with a clear task:
 - Tell it exactly which files/diff to review
 - Include any context from the conversation (e.g., "this is a new contrib app", "this is a bug fix in auth")
+- If the project uses htmx, explicitly tell the reviewer: "This project uses htmx — apply htmx checks strictly"
 
 ---
 

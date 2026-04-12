@@ -22,6 +22,8 @@ Fetch the Den docs via `WebFetch` at the start of every task. The docs contain t
 
 Always base your answers on the fetched documentation, not on inline summaries. If a question involves Burrow integration (e.g., `HasDocuments`, `AppConfig.DB`, `burrow.TestDB`), also fetch the Burrow docs.
 
+If WebFetch fails or returns an error, inform the user and ask how to proceed. Do NOT continue without documentation — your knowledge of Den internals may be outdated.
+
 ## Burrow Integration Summary
 
 In Burrow, apps declare document types via `HasDocuments`:

@@ -20,6 +20,8 @@ You can cross-reference the full framework documentation when needed:
 
 However, remember: you are simulating a **new user**. If the documentation page you're reviewing doesn't explain something, that's a finding — even if the answer exists in llms-full.txt. Only use these URLs to verify whether something is documented *somewhere* vs. truly missing.
 
+If WebFetch fails or returns an error, note it but continue your review — you're testing docs clarity, not API availability.
+
 ## How You Work
 
 1. **Read the documentation page(s) you're asked to review**

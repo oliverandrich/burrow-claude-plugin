@@ -16,6 +16,18 @@ Before starting work, fetch the current framework and ODM documentation:
 
 Fetch these via `WebFetch` at the start of every task. They contain the authoritative API reference, interface tables, boot sequence, conventions, and contrib app details. Do NOT rely on memory or inline summaries — always fetch the current docs.
 
+If WebFetch fails or returns an error, inform the user and ask how to proceed. Do NOT continue without documentation — your knowledge of burrow internals may be outdated.
+
+### Targeted Documentation Usage
+
+After fetching, scan for the sections relevant to your task:
+- **New contrib app**: Search for "HasRoutes", "HasDocuments", "Configure(", "AppConfig"
+- **Handlers/Routes**: Search for "HandlerFunc", "Handle(", "SmartRedirect", "RenderContent"
+- **Templates**: Search for "HasFuncMap", "HasRequestFuncMap", `define "`, "Render"
+- **htmx integration**: Search for "htmx", "IsHTMX", "SmartRedirect", "csrfHxHeaders", "SSE"
+- **Config/Flags**: Search for "FlagSources", "flag.String"
+- **Database/Den**: Search for "QuerySet", "Where", "ErrNotFound", "HasDocuments"
+
 ## Work Tracking with Beans
 
 Use `beans` (the project's issue tracker) to track all work. Never use TodoWrite.
@@ -93,3 +105,29 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. T
 - **Templates**: `{{ define "appname/templatename" }}`, static funcs → `HasFuncMap`, request funcs → `HasRequestFuncMap`
 - **Config flags**: `{appname}-{property}` kebab, env `{APPNAME}_{PROPERTY}`, TOML `{appname}.{property}`
 - **Conventional Commits**, no AI attribution anywhere
+
+## HTMX Patterns (Critical)
+
+Burrow projects are htmx-first. Every handler that renders HTML must consider these patterns:
+
+- **Partial vs full render**: Check `htmx.IsHTMX(r)` — return fragment for htmx requests, full page otherwise
+- **Smart redirects**: Use `htmx.SmartRedirect(w, r, url)` — NEVER use raw `http.Redirect` in handlers that may receive htmx requests
+- **CSRF headers**: Templates with `hx-post`, `hx-put`, `hx-patch`, or `hx-delete` attributes MUST include `{{ csrfHxHeaders }}` in the page head
+- **Boosted links**: Use `hx-boost="true"` on navigation containers — don't build SPAs manually
+- **OOB swaps**: For updating multiple page regions in one response, use `hx-swap-oob="true"` on additional elements
+- **SSE handlers**: Register directly on the mux, NOT wrapped in `burrow.Handle()` — SSE has its own lifecycle
+- **Form patterns**: `hx-post` + `hx-target` + `hx-swap="innerHTML"` for inline form submissions
+- **Error responses**: Return appropriate HTTP status codes — htmx respects these for swap behavior
+- **Validation errors**: Re-render the form fragment with error messages, don't redirect
+
+## Working in Downstream Projects
+
+When the working directory is NOT the burrow repository itself (check `go.mod` — does it `require` burrow rather than being burrow?):
+
+1. Read `go.mod` to check the burrow version and which contrib packages are imported
+2. Read the project's `main.go` or app setup to see which contrib apps are enabled and how they're configured
+3. Check for existing templates in `templates/` or similar directories to understand naming and layout patterns
+4. Look at existing handlers to match the project's style — especially htmx patterns, error handling, and response types
+5. Check which burrow contrib apps are in use (auth, session, htmx, i18n, jobs, etc.) via imports
+6. Follow the project's existing conventions — they may extend or override burrow defaults
+7. Ensure new handlers integrate with the project's existing template layout and htmx setup
