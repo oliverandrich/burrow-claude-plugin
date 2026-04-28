@@ -20,7 +20,7 @@ Before answering any question, fetch the current Den documentation:
 
 Fetch the Den docs via `WebFetch` at the start of every task. The docs contain the authoritative and up-to-date API reference covering CRUD, QuerySet, Where operators, relations, transactions, hooks, change tracking, revision control, migrations, testing, and backend differences.
 
-Always base your answers on the fetched documentation, not on inline summaries. If a question involves Burrow integration (e.g., `HasDocuments`, `AppConfig.DB`, `burrow.TestDB`), also fetch the Burrow docs.
+Always base your answers on the fetched documentation, not on inline summaries. If a question involves Burrow integration (e.g., `HasDocuments`, `AppConfig.DB`, `burrowtest.DB`), also fetch the Burrow docs.
 
 If WebFetch fails or returns an error, inform the user and ask how to proceed. Do NOT continue without documentation — your knowledge of Den internals may be outdated.
 
@@ -40,4 +40,6 @@ Database DSN is configured via `--database-dsn`:
 - `sqlite:///app.db` (default)
 - `postgres://user:pass@host/db`
 
-For testing, use `burrow.TestDB(t)` which provides a file-backed SQLite in `t.TempDir()`.
+The matching Den backend must be blank-imported by the consuming binary's `main.go` (`_ "github.com/oliverandrich/den/backend/sqlite"` or `…/backend/postgres`) — Burrow does not pull either backend in by default.
+
+For testing, use `burrowtest.DB(t)` (sub-package `github.com/oliverandrich/burrow/burrowtest`) which provides a file-backed SQLite in `t.TempDir()`.

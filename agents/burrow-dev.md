@@ -101,7 +101,7 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. T
 - **Handlers**: `func(w http.ResponseWriter, r *http.Request) error` — register via `burrow.Handle(fn)`
 - **Context helpers**: getter = short noun (`Token(ctx)`), setter = `WithX(ctx, val)`, keys = unexported struct types
 - **Repository**: concrete struct with `*den.DB`, no interfaces, instantiate in `Configure()`
-- **Testing**: `burrow.TestDB(t)`, testify, real SQLite, no repo mocking
+- **Testing**: `burrowtest.DB(t)`, testify, real SQLite, no repo mocking
 - **Templates**: `{{ define "appname/templatename" }}`, static funcs → `HasFuncMap`, request funcs → `HasRequestFuncMap`
 - **Config flags**: `{appname}-{property}` kebab, env `{APPNAME}_{PROPERTY}`, TOML `{appname}.{property}`
 - **Conventional Commits**, no AI attribution anywhere

@@ -59,7 +59,7 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. P
 - **Renderer interfaces**: method signatures, `*Page` suffix for page-rendering methods
 - **Templates**: `{{ define "appname/..." }}` namespacing, camelCase function names
 - **App structure**: compile-time interface assertions, standard file layout
-- **Testing**: `burrow.TestDB(t)`, testify, real SQLite, no repo mocking
+- **Testing**: `burrowtest.DB(t)`, testify, real SQLite, no repo mocking
 - **General**: Conventional Commits, no AI attribution, low cyclomatic complexity
 
 ### HTMX Checks (Critical — apply strictly in htmx-enabled projects)

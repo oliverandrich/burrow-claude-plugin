@@ -68,7 +68,7 @@ For best results, use the specialized burrow agents:
 - Context helpers: getter = short noun, setter = `WithX(ctx, val)`
 - Repository: concrete struct with `*den.DB`, instantiated in `Configure()`
 - Config flags: `{appname}-{property}` kebab-case
-- Testing: `burrow.TestDB(t)`, testify, real SQLite
+- Testing: `burrowtest.DB(t)`, testify, real SQLite
 {htmx_conventions}
 ```
 
