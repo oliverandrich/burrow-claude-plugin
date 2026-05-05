@@ -27,7 +27,9 @@ You are configuring this project for optimal use with the burrow Claude Code plu
    - `contrib/i18n` — internationalization
    - `contrib/jobs` — background jobs
    - `contrib/sse` — server-sent events
-   - `contrib/static` — static file serving
+   - `contrib/staticfiles` — static file serving with content-hashed URLs
+   - `contrib/mucss` — default design contrib (µCSS, since burrow v0.18.0)
+   - `contrib/admin` — admin panel coordinator
 3. Check for htmx usage in templates (look for `hx-` attributes in `.html` or `.gohtml` files)
 4. Check for Den usage (look for `den` imports)
 
