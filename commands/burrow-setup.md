@@ -20,18 +20,22 @@ You are configuring this project for optimal use with the burrow Claude Code plu
 **Actions**:
 1. Search the codebase for burrow contrib imports: `grep -r "contrib/" --include="*.go"` or use the Grep tool
 2. Build a list of which contrib apps are in use. Common ones:
-   - `contrib/auth` — authentication
-   - `contrib/session` — session management
-   - `contrib/htmx` — htmx integration
-   - `contrib/csrf` — CSRF protection
-   - `contrib/i18n` — internationalization
-   - `contrib/jobs` — background jobs
-   - `contrib/sse` — server-sent events
+   - `contrib/auth` — WebAuthn / passkey authentication
+   - `contrib/session` — cookie-based sessions
+   - `contrib/csrf` — CSRF protection (token + htmx headers)
+   - `contrib/messages` — flash messages
+   - `contrib/htmx` — htmx asset + request/response helpers
    - `contrib/staticfiles` — static file serving with content-hashed URLs
-   - `contrib/mucss` — default design contrib (µCSS, since burrow v0.18.0)
    - `contrib/admin` — admin panel coordinator
-3. Check for htmx usage in templates (look for `hx-` attributes in `.html` or `.gohtml` files)
-4. Check for Den usage (look for `den` imports)
+   - `contrib/jobs` — SQLite-backed background job queue
+   - `contrib/sse` — Server-Sent Events
+   - `contrib/healthcheck` — `/healthz/live` + `/healthz/ready` endpoints
+   - `contrib/humanize` — locale-aware template formatting (naturaltime, intcomma, ...)
+   - `contrib/ratelimit`, `contrib/secure`, `contrib/authmail` — additional middleware/utilities
+3. i18n is part of burrow's core (`github.com/oliverandrich/burrow/i18n`), not a contrib — apps contribute translation files via `HasTranslations`.
+4. CSS stack: since v0.20 the recommended path is Tailwind v4 via the `cmd/burrow-tailwind` wrapper. Check for `tailwind.css` at the project root and `cmd/burrow-tailwind` as a Go tool in `go.mod`.
+5. Check for htmx usage in templates (look for `hx-` attributes in `.html` files).
+6. Check for Den usage (look for `den` imports).
 
 ---
 

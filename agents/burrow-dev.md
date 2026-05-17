@@ -87,7 +87,7 @@ A feature is NOT done until all documentation is updated:
 4. **`CHANGELOG.md`** — add entry under the correct section in Unreleased
 5. **`burrow.go`** — update package doc comment's contrib app list if applicable
 6. **`CLAUDE.md`** — update contrib app list if applicable
-7. **`justfile`** — add update recipe if the feature embeds external assets (JS, CSS)
+7. **`.mise.toml`** (or `mise-tasks/<name>`) — add a `[tasks.update-<asset>]` recipe if the feature embeds external assets (JS, CSS)
 
 ### Phase 6: Close
 - Add `## Summary of Changes` to the bean

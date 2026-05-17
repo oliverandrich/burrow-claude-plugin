@@ -29,8 +29,10 @@ If WebFetch fails or returns an error, inform the user and ask how to proceed. D
 In Burrow, apps declare document types via `HasDocuments`:
 
 ```go
-func (a *App) Documents() []any {
-    return []any{&Note{}, &Tag{}}
+import "github.com/oliverandrich/den/document"
+
+func (a *App) Documents() []document.Document {
+    return []document.Document{&Note{}, &Tag{}}
 }
 ```
 
