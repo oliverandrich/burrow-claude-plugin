@@ -131,3 +131,13 @@ When the working directory is NOT the burrow repository itself (check `go.mod` �
 5. Check which burrow contrib apps are in use (auth, session, htmx, i18n, jobs, etc.) via imports
 6. Follow the project's existing conventions — they may extend or override burrow defaults
 7. Ensure new handlers integrate with the project's existing template layout and htmx setup
+
+### Scaffolding shortcuts (burrow v0.21+)
+
+The bundled `burrow` CLI handles common boilerplate — prefer it over hand-writing files when starting a fresh app:
+
+- **New contrib-style app inside an existing project**: `burrow generate app <name>` produces `internal/<name>/{app.go, app_test.go, templates/<name>/index.html}` with a registered route. Wire up via `burrow.NewServer(..., <name>.New())`.
+- **Brand-new burrow project** (when the user is starting from scratch): `burrow new <dir> --module <module-path>` produces the full project skeleton — `cmd/<name>/`, `internal/app/` shell, `.mise.toml`, `.air.toml`, CI, goreleaser.
+- **Tailwind CSS build**: `go tool burrow tailwind -i tailwind.css -o internal/app/static/app.min.css --minify` (the older `go tool burrow-tailwind ...` form still works as a deprecation shim until v0.22).
+
+See `docs/reference/cli.md` in burrow itself for all flags.

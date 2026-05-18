@@ -33,7 +33,7 @@ You are configuring this project for optimal use with the burrow Claude Code plu
    - `contrib/humanize` — locale-aware template formatting (naturaltime, intcomma, ...)
    - `contrib/ratelimit`, `contrib/secure`, `contrib/authmail` — additional middleware/utilities
 3. i18n is part of burrow's core (`github.com/oliverandrich/burrow/i18n`), not a contrib — apps contribute translation files via `HasTranslations`.
-4. CSS stack: since v0.20 the recommended path is Tailwind v4 via the `cmd/burrow-tailwind` wrapper. Check for `tailwind.css` at the project root and `cmd/burrow-tailwind` as a Go tool in `go.mod`.
+4. CSS stack: since v0.20 the recommended path is Tailwind v4 via the `burrow tailwind` sub-command of the bundled `cmd/burrow` CLI (v0.21+; the standalone `cmd/burrow-tailwind` is a deprecation shim). Check for `tailwind.css` at the project root and `cmd/burrow` as a Go tool in `go.mod`.
 5. Check for htmx usage in templates (look for `hx-` attributes in `.html` files).
 6. Check for Den usage (look for `den` imports).
 
