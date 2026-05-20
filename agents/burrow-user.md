@@ -79,7 +79,7 @@ You are NOT:
 
 ### Blocking
 - Line ~42: "Register the SSE app" — but how? The guide never showed how to create a server or where main.go is
-- Line ~78: `auth.CurrentUser(r.Context())` — what package is `auth`? No import shown
+- Line ~78: `auth.CurrentUser[auth.EmptyProfile](r.Context())` — what package is `auth`, why the type parameter? No import or [Profile guide](../contrib/auth-profile.md) link shown
 
 ### Confusing
 - Line ~15: "contrib app" used without definition — is this a plugin? a package? a directory?

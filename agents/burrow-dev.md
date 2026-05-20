@@ -138,6 +138,6 @@ The bundled `burrow` CLI handles common boilerplate — prefer it over hand-writ
 
 - **New contrib-style app inside an existing project**: `burrow generate app <name>` produces `internal/<name>/{app.go, app_test.go, templates/<name>/index.html}` with a registered route. Wire up via `burrow.NewServer(..., <name>.New())`.
 - **Brand-new burrow project** (when the user is starting from scratch): `burrow new <dir> --module <module-path>` produces the full project skeleton — `cmd/<name>/`, `internal/app/` shell, `.mise.toml`, `.air.toml`, CI, goreleaser.
-- **Tailwind CSS build**: `go tool burrow tailwind -i tailwind.css -o internal/app/static/app.min.css --minify` (the older `go tool burrow-tailwind ...` form still works as a deprecation shim until v0.22).
+- **Tailwind CSS build**: `go tool burrow tailwind -i tailwind.css -o internal/app/static/app.min.css --minify`. The pre-v0.22 standalone `go tool burrow-tailwind` form is gone; rewrite the tool directive in `go.mod` and the invocations in `.mise.toml` / `.air.toml`.
 
 See `docs/reference/cli.md` in burrow itself for all flags.
