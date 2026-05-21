@@ -141,3 +141,10 @@ The bundled `burrow` CLI handles common boilerplate — prefer it over hand-writ
 - **Tailwind CSS build**: `go tool burrow tailwind -i tailwind.css -o internal/app/static/app.min.css --minify`. The pre-v0.22 standalone `go tool burrow-tailwind` form is gone; rewrite the tool directive in `go.mod` and the invocations in `.mise.toml` / `.air.toml`.
 
 See `docs/reference/cli.md` in burrow itself for all flags.
+
+### v0.23 admin gating and role CLI
+
+Two pieces of pre-v0.23 muscle memory will mislead a new feature:
+
+- The `/admin/` frame is now gated by `RequireAuth + RequireStaff`, not `RequireAdmin`. `HasAdmin.AdminRoutes` is invoked inside a staff-only group; admin-only routes must self-gate via `r.Group(func(r chi.Router) { r.Use(auth.RequireAdmin()); … })`. Tag the matching `AdminNavItems` entries with `AdminOnly: true` so non-admin staff don't see them on the dashboard. The framework filters nav groups per request via `burrow.IsAdmin(ctx)`.
+- The user-management CLI is `auth set-role <username> <user|staff|admin>` — the pre-v0.23 `auth promote` / `auth demote` subcommands were removed without a shim. Deploy scripts, cron jobs, and runbooks need a grep.
