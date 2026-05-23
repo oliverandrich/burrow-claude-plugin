@@ -148,3 +148,17 @@ Two pieces of pre-v0.23 muscle memory will mislead a new feature:
 
 - The `/admin/` frame is now gated by `RequireAuth + RequireStaff`, not `RequireAdmin`. `HasAdmin.AdminRoutes` is invoked inside a staff-only group; admin-only routes must self-gate via `r.Group(func(r chi.Router) { r.Use(auth.RequireAdmin()); … })`. Tag the matching `AdminNavItems` entries with `AdminOnly: true` so non-admin staff don't see them on the dashboard. The framework filters nav groups per request via `burrow.IsAdmin(ctx)`.
 - The user-management CLI is `auth set-role <username> <user|staff|admin>` — the pre-v0.23 `auth promote` / `auth demote` subcommands were removed without a shim. Deploy scripts, cron jobs, and runbooks need a grep.
+
+### v0.24 sub-package split and typed registry lookup
+
+The `burrow` package is a thin facade over themed sub-packages: `burrow/app`, `burrow/server`, `burrow/web`, `burrow/tasks`, `burrow/pagination`, `burrow/registry`. Type aliases preserve every `burrow.X` symbol, so existing handlers compile unchanged. Two pieces of pre-v0.24 muscle memory will mislead a new feature:
+
+- **Registry orchestration helpers are no longer exported.** `Registry.ConfigureAll`, `RegisterMiddleware`, `RegisterRoutes`, `RunMigrations`, `AllFlags`, `AllNavItems`, `AllCLICommands`, `Shutdown` are private helpers inside `burrow/server` and run automatically during boot. App code never calls them; if you find yourself reaching for one, you're on the wrong abstraction.
+- **Use typed registry lookup, not hand-rolled `XxxFromRegistry` helpers.** Three patterns:
+    - **Hard-Dependency** (provider declared in `Dependencies()`): `mailer := registry.MustGet[*mail.App](cfg.Registry)` — panics with a clear message if missing
+    - **Optional-Service** (graceful degradation): `if broker, ok := registry.Get[*sse.App](cfg.Registry); ok { … }`
+    - **Soft-Discovery** (any app implementing an interface): `for _, app := range registry.Apps(cfg.Registry) { if x, ok := app.(SomeIface); ok { … } }`
+
+    See `docs/guide/inter-app-communication.md`. Do NOT write `XxxFromRegistry(reg)` helpers — the typed lookups replace that pattern (`sse.BrokerFromRegistry` was removed in v0.24 for exactly this reason).
+
+Direct sub-package imports are valid for less-common APIs (`tasks.DefineTask[P]`, `pagination.ParsePageRequest`, `app.Config` sub-configs, `web.HandlerFunc`). Convention: `burrow.X` for the everyday API; reach into the sub-package only when the file already pulls in that package for related types.

@@ -108,6 +108,13 @@ Burrow projects are htmx-first. Every blueprint MUST account for:
 - Requires: session, csrf
 - Optional: i18n (for translations)
 
+### Inter-App Composition
+{If this app needs to talk to another at runtime — otherwise omit this section:}
+- **Hard-Dependency**: list provider in `Dependencies()`; look up via `registry.MustGet[*Provider](cfg.Registry)` in `Configure`
+- **Optional-Service**: `registry.Get[*Provider](cfg.Registry)` for graceful degradation when the provider may be absent
+- **Soft-Discovery**: iterate `registry.Apps(cfg.Registry)` to find any app implementing a published interface
+Do NOT specify a `XxxFromRegistry(reg)` helper — the typed lookups in `burrow/registry` replace that pattern.
+
 ### Implementation Order
 1. Models + migrations (TDD: write model tests first)
 2. Repository (TDD: write repo tests against real SQLite first)

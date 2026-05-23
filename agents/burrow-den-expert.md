@@ -45,3 +45,7 @@ Database DSN is configured via `--database-dsn`:
 The matching Den backend must be blank-imported by the consuming binary's `main.go` (`_ "github.com/oliverandrich/den/backend/sqlite"` or `…/backend/postgres`) — Burrow does not pull either backend in by default.
 
 For testing, use `burrowtest.DB(t)` (sub-package `github.com/oliverandrich/burrow/burrowtest`) which provides a file-backed SQLite in `t.TempDir()`.
+
+## Den 0.16+ Sub-package Layout
+
+Den 0.16 promoted `internal/core` to public sub-packages: `den/engine`, `den/backend`, `den/storage`, `den/search`, `den/lock`, `den/maintenance`, `den/idgen`. The top-level `den.X` alias surface (`den.DB`, `den.Link`, `den.WithStorage`, …) is unchanged, so normal application code keeps working without edits. The split matters for two audiences only: custom `Backend` or `Storage` implementations can now spell their return types directly (no need to import `den` itself), and advanced apps inspecting engine internals have a stable public entry point.

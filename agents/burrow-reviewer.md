@@ -62,6 +62,12 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. P
 - **Testing**: `burrowtest.DB(t)`, testify, real SQLite, no repo mocking
 - **General**: Conventional Commits, no AI attribution, low cyclomatic complexity
 
+### v0.24 Registry Checks
+
+- [ ] Call to `reg.ConfigureAll`, `reg.RegisterMiddleware`, `reg.RegisterRoutes`, `reg.RunMigrations`, `reg.AllFlags`, `reg.AllNavItems`, `reg.AllCLICommands`, or `reg.Shutdown` → **MUST FIX**: these helpers are no longer exported; remove the call (Server boot owns the lifecycle).
+- [ ] Method-style registry access like `cfg.Registry.Get[T]()` → **MUST FIX**: use the free function `registry.Get[T](cfg.Registry)` (operations on `*registry.Registry` are package-level functions, not methods).
+- [ ] New `XxxFromRegistry(reg)` helper for inter-app lookup → **SHOULD FIX**: replace with `registry.Get[*X]` / `MustGet[*X]` / `GetByName` (see docs/guide/inter-app-communication.md). The pre-v0.24 `sse.BrokerFromRegistry` was removed for exactly this reason.
+
 ### HTMX Checks (Critical — apply strictly in htmx-enabled projects)
 
 These are the most commonly missed patterns. Check every one:
