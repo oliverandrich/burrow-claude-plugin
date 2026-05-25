@@ -143,30 +143,42 @@ The bundled `burrow` CLI handles common boilerplate — prefer it over hand-writ
 
 See `docs/reference/cli.md` in burrow itself for all flags.
 
-### v0.23 admin gating and role CLI
+## Architectural Conventions
 
-Two pieces of pre-v0.23 muscle memory will mislead a new feature:
+The patterns below are how burrow works *today*. They are not historical migrations — fetch the canonical docs (link above) for the full reference. Reach for `docs/migration/` in the burrow repo only when you encounter pre-existing code that pre-dates one of these patterns.
 
-- The `/admin/` frame is now gated by `RequireAuth + RequireStaff`, not `RequireAdmin`. `HasAdmin.AdminRoutes` is invoked inside a staff-only group; admin-only routes must self-gate via `r.Group(func(r chi.Router) { r.Use(auth.RequireAdmin()); … })`. Tag the matching `AdminNavItems` entries with `AdminOnly: true` so non-admin staff don't see them on the dashboard. The framework filters nav groups per request via `burrow.IsAdmin(ctx)`.
-- The user-management CLI is `auth set-role <username> <user|staff|admin>` — the pre-v0.23 `auth promote` / `auth demote` subcommands were removed without a shim. Deploy scripts, cron jobs, and runbooks need a grep.
+### Package layout
 
-### v0.24 sub-package split and typed registry lookup
+The `burrow` package is a thin facade over themed sub-packages: `burrow/app`, `burrow/server`, `burrow/web`, `burrow/tasks`, `burrow/pagination`, `burrow/registry`. Type aliases preserve every `burrow.X` symbol, so everyday code keeps writing `burrow.NewServer`, `burrow.Handle`, `burrow.App` etc. Direct sub-package imports are valid for less-common APIs (`tasks.DefineTask[P]`, `pagination.ParsePageRequest`, `app.Config` sub-configs, `web.HandlerFunc`) — reach into the sub-package only when the file already pulls in that package for related types.
 
-The `burrow` package is a thin facade over themed sub-packages: `burrow/app`, `burrow/server`, `burrow/web`, `burrow/tasks`, `burrow/pagination`, `burrow/registry`. Type aliases preserve every `burrow.X` symbol, so existing handlers compile unchanged. Two pieces of pre-v0.24 muscle memory will mislead a new feature:
+### Admin gating: staff vs. admin
 
-- **Registry orchestration helpers are no longer exported.** `Registry.ConfigureAll`, `RegisterMiddleware`, `RegisterRoutes`, `RunMigrations`, `AllFlags`, `AllNavItems`, `AllCLICommands`, `Shutdown` are private helpers inside `burrow/server` and run automatically during boot. App code never calls them; if you find yourself reaching for one, you're on the wrong abstraction.
-- **Use typed registry lookup, not hand-rolled `XxxFromRegistry` helpers.** Three patterns:
-    - **Hard-Dependency** (provider declared in `Dependencies()`): `mailer := registry.MustGet[*mail.App](cfg.Registry)` — panics with a clear message if missing
-    - **Optional-Service** (graceful degradation): `if broker, ok := registry.Get[*sse.App](cfg.Registry); ok { … }`
-    - **Soft-Discovery** (any app implementing an interface): `for _, app := range registry.Apps(cfg.Registry) { if x, ok := app.(SomeIface); ok { … } }`
+The `/admin/` frame is gated by `RequireAuth + RequireStaff`, not `RequireAdmin`. `HasAdmin.AdminRoutes` is invoked inside a staff-only group; admin-only routes must self-gate via `r.Group(func(r chi.Router) { r.Use(auth.RequireAdmin()); … })`. Tag the matching `AdminNavItems` entries with `AdminOnly: true` so non-admin staff don't see them on the dashboard. The framework filters nav groups per request via `burrow.IsAdmin(ctx)`. The user-management CLI is `auth set-role <username> <user|staff|admin>`; there is no `auth promote` / `auth demote` shim.
 
-    See `docs/guide/inter-app-communication.md`. Do NOT write `XxxFromRegistry(reg)` helpers — the typed lookups replace that pattern (`sse.BrokerFromRegistry` was removed in v0.24 for exactly this reason).
+### Registry orchestration is internal; app code uses typed lookup
 
-Direct sub-package imports are valid for less-common APIs (`tasks.DefineTask[P]`, `pagination.ParsePageRequest`, `app.Config` sub-configs, `web.HandlerFunc`). Convention: `burrow.X` for the everyday API; reach into the sub-package only when the file already pulls in that package for related types.
+The server owns the boot lifecycle — registry orchestration helpers (`Registry.ConfigureAll`, `RegisterMiddleware`, `RegisterRoutes`, `RunMigrations`, `AllFlags`, `AllNavItems`, `AllCLICommands`, `Shutdown`) are private helpers inside `burrow/server` and run automatically. If you find yourself reaching for one from app code, you're on the wrong abstraction.
 
-### v0.25 dev server, default role, webhook exemptions
+App code reads from the registry via three typed-lookup patterns:
 
-- **`burrow dev` replaces Air** as the in-scaffold live-reload loop (v0.25.0). Same trigger surface, integrated into the `burrow` CLI. The scaffold no longer ships `.air.toml`; references to it in older docs/blog posts are stale.
-- **`contrib/selfupdate`** is a new contrib (v0.25.0) for in-app binary self-update from GitHub releases. Wire via `selfupdate.New(selfupdate.WithRepo("user/repo"))`. Useful for distributing CLI tools or single-binary daemons.
-- **`auth.WithDefaultRole(role)` option** (v0.25.3): apps where every accepted invitee should be `RoleStaff` (invite-only blogs, internal tools with no reader role) no longer wrap the registration flow or run a post-hoc CLI. Pass `auth.WithDefaultRole(auth.RoleStaff)` to `auth.New[…]()`. The first-user → `RoleAdmin` promotion still wins. Valid values: `RoleUser`, `RoleStaff`, `RoleAdmin`; anything else makes `Configure` return an error at boot.
-- **`csrf.ExemptPaths` capability interface** (v0.25.6): webhook receivers (Webmention inbound, ActivityPub inbox, payment callbacks) accept POSTs from off-domain clients without a CSRF token by design. An app that owns such routes implements `CSRFExemptPaths() []string` and returns its exempt patterns — csrf walks the registry at boot and bypasses validation for matching requests. Patterns: exact (`"/webmention"`) and prefix-with-trailing-slash (`"/inbox/"`). Locality matters: the declaration belongs to the app that owns the route, not to `main.go`. Do NOT wrap webhook handlers manually with `gorillacsrf.UnsafeSkipCheck`.
+- **Hard-Dependency** (provider declared in `Dependencies()`): `mailer := registry.MustGet[*mail.App](cfg.Registry)` — panics with a clear message if missing.
+- **Optional-Service** (graceful degradation): `if broker, ok := registry.Get[*sse.App](cfg.Registry); ok { … }`.
+- **Soft-Discovery** (any app implementing an interface): `for _, app := range registry.Apps(cfg.Registry) { if x, ok := app.(SomeIface); ok { … } }`. The contrib that asks (e.g. `csrf` walking for `csrf.ExemptPaths`) merges every implementor's contribution into one matcher; the contrib that answers stays local to the route it owns.
+
+See `docs/guide/inter-app-communication.md`. Do NOT write `XxxFromRegistry(reg)` helpers — the typed lookups replace that pattern.
+
+### Default role on registration
+
+For apps where every accepted invitee should be `RoleStaff` (invite-only blogs, internal tools with no reader role), pass `auth.WithDefaultRole(auth.RoleStaff)` to `auth.New[…]()` instead of wrapping the registration flow. The first-user → `RoleAdmin` promotion still wins. Valid values: `RoleUser`, `RoleStaff`, `RoleAdmin`; anything else makes `Configure` return an error at boot.
+
+### CSRF exempts for webhook receivers
+
+Webhook receivers (Webmention inbound, ActivityPub inbox, payment callbacks) accept POSTs from off-domain clients without a CSRF token by design. An app that owns such routes implements `csrf.ExemptPaths` and returns its exempt patterns from `CSRFExemptPaths() []string`; csrf walks the registry at boot and bypasses validation for matching requests. Patterns are exact (`"/webmention"`) or prefix-with-trailing-slash (`"/inbox/"`) — no glob, no chi placeholders. Locality matters: the declaration belongs to the app that owns the route, not to `main.go`. Do NOT wrap webhook handlers manually with `gorillacsrf.UnsafeSkipCheck`.
+
+### Other contribs worth knowing
+
+- `contrib/selfupdate` — in-app binary self-update from GitHub releases. Wire via `selfupdate.New(selfupdate.WithRepo("user/repo"))`. Useful for distributing CLI tools or single-binary daemons.
+
+### Migration history
+
+For pre-existing code that uses retired patterns (registry-method calls, `BrokerFromRegistry`-style helpers, `.air.toml`, `mucss` / `bootstrap` / `bsicons` / `alpine` contribs, `auth promote` CLI, etc.), see `docs/migration/` in the burrow repo for the per-version migration notes (v0.20 onwards).

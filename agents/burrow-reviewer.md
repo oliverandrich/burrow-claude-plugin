@@ -62,17 +62,17 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. P
 - **Testing**: `burrowtest.DB(t)`, testify, real SQLite, no repo mocking
 - **General**: Conventional Commits, no AI attribution, low cyclomatic complexity
 
-### v0.25 Auth + CSRF Checks
+### Auth + CSRF Checks
 
 - [ ] Webhook handler wraps the request manually with `gorillacsrf.UnsafeSkipCheck(r)` → **SHOULD FIX**: implement `csrf.ExemptPaths` (return the route patterns from the app that owns them); the csrf contrib applies `UnsafeSkipCheck` automatically for matching requests. Manual wrapping in handlers means the exempt is invisible from the registry and travels poorly when the route moves.
-- [ ] Registration handler followed by manual `repo.SetUserRole(ctx, user.ID, RoleStaff)` to bump every new user → **CONSIDER**: `auth.WithDefaultRole(auth.RoleStaff)` does the same inline (since v0.25.3) and respects the first-user → `RoleAdmin` promotion automatically.
+- [ ] Registration handler followed by manual `repo.SetUserRole(ctx, user.ID, RoleStaff)` to bump every new user → **CONSIDER**: `auth.WithDefaultRole(auth.RoleStaff)` does the same inline and respects the first-user → `RoleAdmin` promotion automatically.
 - [ ] `csrf.ExemptPaths` declaration uses `"/inbox/*"` glob syntax → **MUST FIX**: the matcher accepts exact match (`"/inbox/alice"`) or prefix-with-trailing-slash (`"/inbox/"`) only. `*` is not a wildcard.
 
-### v0.24 Registry Checks
+### Registry Checks
 
-- [ ] Call to `reg.ConfigureAll`, `reg.RegisterMiddleware`, `reg.RegisterRoutes`, `reg.RunMigrations`, `reg.AllFlags`, `reg.AllNavItems`, `reg.AllCLICommands`, or `reg.Shutdown` → **MUST FIX**: these helpers are no longer exported; remove the call (Server boot owns the lifecycle).
+- [ ] Call to `reg.ConfigureAll`, `reg.RegisterMiddleware`, `reg.RegisterRoutes`, `reg.RunMigrations`, `reg.AllFlags`, `reg.AllNavItems`, `reg.AllCLICommands`, or `reg.Shutdown` → **MUST FIX**: these helpers are not exported; remove the call (Server boot owns the lifecycle).
 - [ ] Method-style registry access like `cfg.Registry.Get[T]()` → **MUST FIX**: use the free function `registry.Get[T](cfg.Registry)` (operations on `*registry.Registry` are package-level functions, not methods).
-- [ ] New `XxxFromRegistry(reg)` helper for inter-app lookup → **SHOULD FIX**: replace with `registry.Get[*X]` / `MustGet[*X]` / `GetByName` (see docs/guide/inter-app-communication.md). The pre-v0.24 `sse.BrokerFromRegistry` was removed for exactly this reason.
+- [ ] New `XxxFromRegistry(reg)` helper for inter-app lookup → **SHOULD FIX**: replace with `registry.Get[*X]` / `MustGet[*X]` / `GetByName` (see docs/guide/inter-app-communication.md).
 
 ### HTMX Checks (Critical — apply strictly in htmx-enabled projects)
 
