@@ -99,16 +99,9 @@ If the user says "whatever you think is best", provide your recommendation and g
    - `golangci-lint run ./...`
 4. Update bean todo items as you progress
 
-### HTMX Implementation Checklist
+### HTMX Implementation Reminder
 
-For every handler that renders HTML, verify:
-- [ ] Checks `htmx.IsHTMX(r)` to decide partial vs full page render
-- [ ] Uses `htmx.SmartRedirect(w, r, url)` instead of `http.Redirect`
-- [ ] Templates with `hx-post/put/patch/delete` include `{{ csrfHxHeaders }}`
-- [ ] Navigation links use `hx-boost="true"`
-- [ ] Form handlers target specific elements via `hx-target`
-- [ ] Validation errors re-render the form fragment, don't redirect
-- [ ] SSE handlers are NOT wrapped in `burrow.Handle()`
+Burrow projects are htmx-first. Follow the patterns the `burrow-dev` agent encodes (`HasFuncMap`/`HasRequestFuncMap`, `htmx.IsHTMX`, `SmartRedirect`, `{{ csrfHxHeaders }}`, `hx-boost`, OOB swaps, SSE handlers NOT wrapped in `burrow.Handle()`). The `burrow-reviewer` agent in Phase 6 enforces the full checklist — treat it as the authoritative source. If you're unsure, sketch the handler and let the reviewer catch it.
 
 ---
 
@@ -129,9 +122,7 @@ For every handler that renders HTML, verify:
 **Goal**: Complete all integration points
 
 **Actions**:
-1. Update relevant documentation. What to update depends on whether you're working in burrow itself or a downstream project:
-   - **In burrow**: `docs/contrib/<name>.md`, `mkdocs.yml` nav entry, `docs/llms.txt`, `CHANGELOG.md`, `CLAUDE.md` contrib list
-   - **In downstream projects**: README, CHANGELOG, or whatever documentation conventions the project uses
+1. Update documentation. The full per-asset checklist (contrib doc page, mkdocs nav, llms.txt, CHANGELOG, package doc comment, CLAUDE.md if applicable, mise-tasks for asset updates) lives in the `burrow-dev` agent's Phase 5 section — treat that as the source of truth so this command and the agent don't drift apart. In downstream projects substitute the project's equivalents (README, CHANGELOG, whatever the project uses).
 2. Add `## Summary of Changes` to the bean
 3. Mark bean as completed
 4. Summarize: what was built, key decisions, files modified, suggested next steps
