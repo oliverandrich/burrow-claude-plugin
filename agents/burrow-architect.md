@@ -112,7 +112,7 @@ Burrow projects are htmx-first. Every blueprint MUST account for:
 {If this app needs to talk to another at runtime — otherwise omit this section:}
 - **Hard-Dependency**: list provider in `Dependencies()`; look up via `registry.MustGet[*Provider](cfg.Registry)` in `Configure`
 - **Optional-Service**: `registry.Get[*Provider](cfg.Registry)` for graceful degradation when the provider may be absent
-- **Soft-Discovery**: iterate `registry.Apps(cfg.Registry)` to find any app implementing a published interface
+- **Soft-Discovery**: iterate `registry.Apps(cfg.Registry)` to find any app implementing a published capability interface. Example: `csrf.ExemptPaths` (v0.25.6) — the csrf app walks the registry, finds every implementor, and merges their `CSRFExemptPaths() []string` declarations into one matcher. Apps that own routes declare their own exempts locally; `main.go` stays unaware. Pattern works for any "framework asks all apps for X" composition.
 Do NOT specify a `XxxFromRegistry(reg)` helper — the typed lookups in `burrow/registry` replace that pattern.
 
 ### Implementation Order

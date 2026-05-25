@@ -27,10 +27,11 @@ You are configuring this project for optimal use with the burrow Claude Code plu
    - `contrib/htmx` — htmx asset + request/response helpers
    - `contrib/staticfiles` — static file serving with content-hashed URLs
    - `contrib/admin` — admin panel coordinator
-   - `contrib/jobs` — SQLite-backed background job queue
+   - `contrib/jobs` — Den-backed background job queue (SQLite + PostgreSQL)
    - `contrib/sse` — Server-Sent Events
    - `contrib/healthcheck` — `/healthz/live` + `/healthz/ready` endpoints
    - `contrib/humanize` — locale-aware template formatting (naturaltime, intcomma, ...)
+   - `contrib/selfupdate` — in-app binary self-update from GitHub releases
    - `contrib/ratelimit`, `contrib/secure`, `contrib/authmail` — additional middleware/utilities
 3. i18n is part of burrow's core (`github.com/oliverandrich/burrow/i18n`), not a contrib — apps contribute translation files via `HasTranslations`.
 4. CSS stack: since v0.20 the recommended path is Tailwind v4 via the `burrow tailwind` sub-command of the bundled `cmd/burrow` CLI (v0.21+). The standalone `cmd/burrow-tailwind` shim was removed in v0.22. Check for `tailwind.css` at the project root and `cmd/burrow` as a Go tool in `go.mod`.

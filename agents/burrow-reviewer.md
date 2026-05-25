@@ -62,6 +62,12 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. P
 - **Testing**: `burrowtest.DB(t)`, testify, real SQLite, no repo mocking
 - **General**: Conventional Commits, no AI attribution, low cyclomatic complexity
 
+### v0.25 Auth + CSRF Checks
+
+- [ ] Webhook handler wraps the request manually with `gorillacsrf.UnsafeSkipCheck(r)` → **SHOULD FIX**: implement `csrf.ExemptPaths` (return the route patterns from the app that owns them); the csrf contrib applies `UnsafeSkipCheck` automatically for matching requests. Manual wrapping in handlers means the exempt is invisible from the registry and travels poorly when the route moves.
+- [ ] Registration handler followed by manual `repo.SetUserRole(ctx, user.ID, RoleStaff)` to bump every new user → **CONSIDER**: `auth.WithDefaultRole(auth.RoleStaff)` does the same inline (since v0.25.3) and respects the first-user → `RoleAdmin` promotion automatically.
+- [ ] `csrf.ExemptPaths` declaration uses `"/inbox/*"` glob syntax → **MUST FIX**: the matcher accepts exact match (`"/inbox/alice"`) or prefix-with-trailing-slash (`"/inbox/"`) only. `*` is not a wildcard.
+
 ### v0.24 Registry Checks
 
 - [ ] Call to `reg.ConfigureAll`, `reg.RegisterMiddleware`, `reg.RegisterRoutes`, `reg.RunMigrations`, `reg.AllFlags`, `reg.AllNavItems`, `reg.AllCLICommands`, or `reg.Shutdown` → **MUST FIX**: these helpers are no longer exported; remove the call (Server boot owns the lifecycle).
@@ -98,3 +104,7 @@ These are the most commonly missed patterns. Check every one:
 ### Clean
 (list files that follow all conventions)
 ```
+
+## Reporting Bugs Worth Filing
+
+If a finding is severe enough that the user might want to track it in a bean, the bean body needs evidence — not just the symptom. Quote `file:line` for the buggy code and, when possible, the assertion that would fail (or a runtime trace). "Function X has the wrong behaviour" without a citation makes the bean unverifiable and tends to scrap later. If you can't quote a location, downgrade the finding from **Must Fix** to **Consider** and say what's missing.
