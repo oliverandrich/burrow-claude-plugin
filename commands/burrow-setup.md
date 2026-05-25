@@ -18,8 +18,8 @@ You are configuring this project for optimal use with the burrow Claude Code plu
 ## Step 2: Detect Contrib Apps
 
 **Actions**:
-1. Search the codebase for burrow contrib imports: `grep -r "contrib/" --include="*.go"` or use the Grep tool
-2. Build a list of which contrib apps are in use. Common ones:
+1. Search the codebase for burrow contrib imports: `grep -r "contrib/" --include="*.go"` or use the Grep tool. The output of this grep is authoritative — use it to build the list of contribs that are actually in use.
+2. For each contrib found, write a short description. Source of truth is the fetched llms-full.txt (the burrow docs) — look up each `contrib/<name>` you grepped for. The list below is a quick crib for the contribs you'll see most often, but is not exhaustive and may lag behind the latest release:
    - `contrib/auth` — WebAuthn / passkey authentication
    - `contrib/session` — cookie-based sessions
    - `contrib/csrf` — CSRF protection (token + htmx headers)
@@ -33,8 +33,10 @@ You are configuring this project for optimal use with the burrow Claude Code plu
    - `contrib/humanize` — locale-aware template formatting (naturaltime, intcomma, ...)
    - `contrib/selfupdate` — in-app binary self-update from GitHub releases
    - `contrib/ratelimit`, `contrib/secure`, `contrib/authmail` — additional middleware/utilities
+
+   If grep finds a `contrib/<name>` that's not in this crib, do NOT guess — pull its description from the fetched docs (the `## contrib/<name>` heading in llms-full.txt) or fall back to "see `docs/contrib/<name>.md`".
 3. i18n is part of burrow's core (`github.com/oliverandrich/burrow/i18n`), not a contrib — apps contribute translation files via `HasTranslations`.
-4. CSS stack: since v0.20 the recommended path is Tailwind v4 via the `burrow tailwind` sub-command of the bundled `cmd/burrow` CLI (v0.21+). The standalone `cmd/burrow-tailwind` shim was removed in v0.22. Check for `tailwind.css` at the project root and `cmd/burrow` as a Go tool in `go.mod`.
+4. CSS stack: the recommended path is Tailwind v4 via the `burrow tailwind` sub-command. Check for `tailwind.css` at the project root and `cmd/burrow` as a Go tool in `go.mod`.
 5. Check for htmx usage in templates (look for `hx-` attributes in `.html` files).
 6. Check for Den usage (look for `den` imports).
 
