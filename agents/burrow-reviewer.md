@@ -86,6 +86,8 @@ These are the most commonly missed patterns. Check every one:
 - [ ] Form submissions via htmx → uses `hx-target` to specify where the response goes
 - [ ] Validation errors in htmx forms → re-renders form fragment with errors, does NOT redirect
 - [ ] Multiple updates needed → uses `hx-swap-oob="true"` for out-of-band swaps
+- [ ] `<form method="post">` in a `contrib/admin`, `contrib/auth`, or downstream `HasAdmin`/`RequireAuth+RequireStaff` template → **SHOULD FIX**: switch to `<form hx-post="…">`. `contrib/auth` is WebAuthn-only, so the no-JS fallback never runs — `method=post` here is dead code (see `docs/contrib/admin.md#javascript-required`).
+- [ ] `<button hx-get="/…">` used for navigation (rather than a destructive POST/DELETE action) → **SHOULD FIX**: use `<a href="/…">` inside the `hx-boost` container — preserves screen-reader semantics, right-click-new-tab, bookmarks, and direct-URL reload, while htmx still upgrades the click into a fragment swap.
 
 ## Output Format
 

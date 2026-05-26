@@ -60,6 +60,17 @@ Burrow projects are htmx-first. Every blueprint MUST account for:
 - **Navigation**: New pages should use `hx-boost` for link navigation
 - **SSE handlers**: Must NOT be wrapped in `burrow.Handle()` — note this explicitly in the blueprint
 
+### Admin/auth JS-required convention
+
+For blueprints under `RequireAuth + RequireStaff` (admin views, downstream `HasAdmin` apps), or in `contrib/auth`-style WebAuthn flows, JS is a hard requirement — `contrib/auth` is WebAuthn-only, so the no-JS form-fallback path never runs in practice. Reflect this in the blueprint:
+
+- **Forms**: `<form hx-post="…" hx-target="#main" hx-swap="innerHTML">` — never specify a `method="post"` belt-and-suspenders fallback.
+- **Navigation**: `<a href="…">` inside an `hx-boost` container — never `<button hx-get>` (loses semantics, bookmarks, right-click-new-tab).
+- **Destructive actions**: `<button hx-post>` — link-shaped triggers would be reachable via bookmark / prefetch.
+- **Validation errors**: re-render the same form fragment into the configured target; success uses `htmx.SmartRedirect`.
+
+See `docs/contrib/admin.md#javascript-required` for the canonical reference.
+
 ## How You Work
 
 1. **Understand the request**: Ask clarifying questions if requirements are ambiguous

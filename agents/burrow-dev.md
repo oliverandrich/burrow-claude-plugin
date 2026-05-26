@@ -155,6 +155,17 @@ The `burrow` package is a thin facade over themed sub-packages: `burrow/app`, `b
 
 The `/admin/` frame is gated by `RequireAuth + RequireStaff`, not `RequireAdmin`. `HasAdmin.AdminRoutes` is invoked inside a staff-only group; admin-only routes must self-gate via `r.Group(func(r chi.Router) { r.Use(auth.RequireAdmin()); … })`. Tag the matching `AdminNavItems` entries with `AdminOnly: true` so non-admin staff don't see them on the dashboard. The framework filters nav groups per request via `burrow.IsAdmin(ctx)`. The user-management CLI is `auth set-role <username> <user|staff|admin>`; there is no `auth promote` / `auth demote` shim.
 
+### Admin and auth contribs mandate JavaScript
+
+`contrib/auth` is WebAuthn-only; `navigator.credentials.create()` / `.get()` cannot work without JS. `contrib/admin` sits behind `RequireAuth + RequireStaff`, so every admin page already requires a JS-capable client. Progressive-enhancement-to-no-JS form fallbacks are dead code — never write them in admin/auth templates or in downstream `HasAdmin` views.
+
+- **Form submits**: `<form hx-post="/path" hx-target="#main" hx-swap="innerHTML">` — NOT `<form method="post">` with a sibling `hx-post`. Validation errors re-render the same fragment; success uses `htmx.SmartRedirect` (which sets `HX-Redirect` for htmx, 303 for non-htmx — keep the helper, its non-htmx branch is defensive, not user-facing).
+- **Navigation**: `<a href="/path">` inside an `hx-boost` container on `<body>` — NOT `<button hx-get="/path">`. The `<a href>` keeps screen-reader semantics, right-click-new-tab, bookmarks, and direct-URL reloads working; htmx upgrades the click into a fragment swap.
+- **Destructive actions** (delete, deactivate, logout): `<button hx-post>` — they shouldn't be link-shaped (bookmark/prefetch surface).
+- **CSRF**: rely on `csrfHxHeaders` on `<body>` (auto-injects `X-CSRF-Token` for every htmx request) plus a hidden `gorilla.csrf.Token` input in each form.
+
+See `docs/contrib/admin.md#javascript-required` for the canonical reference and `contrib/auth/templates/admin_user_form.html` + `contrib/auth/admin_handlers.go` (`adminUpdateUser`) for the validation-error / success template+handler pair.
+
 ### Registry orchestration is internal; app code uses typed lookup
 
 The server owns the boot lifecycle — registry orchestration helpers (`Registry.ConfigureAll`, `RegisterMiddleware`, `RegisterRoutes`, `RunMigrations`, `AllFlags`, `AllNavItems`, `AllCLICommands`, `Shutdown`) are private helpers inside `burrow/server` and run automatically. If you find yourself reaching for one from app code, you're on the wrong abstraction.
