@@ -182,6 +182,10 @@ See `docs/guide/inter-app-communication.md`. Do NOT write `XxxFromRegistry(reg)`
 
 For apps where every accepted invitee should be `RoleStaff` (invite-only blogs, internal tools with no reader role), pass `auth.WithDefaultRole(auth.RoleStaff)` to `auth.New[…]()` instead of wrapping the registration flow. The first-user → `RoleAdmin` promotion still wins. Valid values: `RoleUser`, `RoleStaff`, `RoleAdmin`; anything else makes `Configure` return an error at boot.
 
+### Reject usernames/emails at registration
+
+To bar otherwise-free-but-unwanted handles or addresses at signup (reserved usernames, blocked email domains), pass `auth.WithUsernameValidator(fn)` or `auth.WithEmailValidator(fn)` to `auth.New[…]()` — both take `func(context.Context, string) error`. The validator runs before the user is created; a non-nil error aborts registration with HTTP 400 and its message is shown to the end user, so return a clean user-facing message (`errors.New("username is reserved")`), not a wrapped internal error. Each runs only in its matching mode (username vs. email). Uniqueness is already enforced by the database — use these for policy rejections, not duplicate checks. Do NOT wrap the registration handler to bolt on a blocklist check.
+
 ### CSRF exempts for webhook receivers
 
 Webhook receivers (Webmention inbound, ActivityPub inbox, payment callbacks) accept POSTs from off-domain clients without a CSRF token by design. An app that owns such routes implements `csrf.ExemptPaths` and returns its exempt patterns from `CSRFExemptPaths() []string`; csrf walks the registry at boot and bypasses validation for matching requests. Patterns are exact (`"/webmention"`) or prefix-with-trailing-slash (`"/inbox/"`) — no glob, no chi placeholders. Locality matters: the declaration belongs to the app that owns the route, not to `main.go`. Do NOT wrap webhook handlers manually with `gorillacsrf.UnsafeSkipCheck`.

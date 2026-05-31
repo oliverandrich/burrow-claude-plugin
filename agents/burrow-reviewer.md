@@ -66,6 +66,7 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. P
 
 - [ ] Webhook handler wraps the request manually with `gorillacsrf.UnsafeSkipCheck(r)` → **SHOULD FIX**: implement `csrf.ExemptPaths` (return the route patterns from the app that owns them); the csrf contrib applies `UnsafeSkipCheck` automatically for matching requests. Manual wrapping in handlers means the exempt is invisible from the registry and travels poorly when the route moves.
 - [ ] Registration handler followed by manual `repo.SetUserRole(ctx, user.ID, RoleStaff)` to bump every new user → **CONSIDER**: `auth.WithDefaultRole(auth.RoleStaff)` does the same inline and respects the first-user → `RoleAdmin` promotion automatically.
+- [ ] Wrapped registration handler that rejects reserved usernames or blocked email addresses with a hand-rolled blocklist check → **CONSIDER**: `auth.WithUsernameValidator(fn)` / `auth.WithEmailValidator(fn)` run the check before user creation and surface the error message to the user (HTTP 400) without wrapping the flow.
 - [ ] `csrf.ExemptPaths` declaration uses `"/inbox/*"` glob syntax → **MUST FIX**: the matcher accepts exact match (`"/inbox/alice"`) or prefix-with-trailing-slash (`"/inbox/"`) only. `*` is not a wildcard.
 
 ### Registry Checks
