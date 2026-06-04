@@ -26,6 +26,7 @@ You are configuring this project for optimal use with the burrow Claude Code plu
    - `contrib/messages` — flash messages
    - `contrib/htmx` — htmx asset + request/response helpers
    - `contrib/staticfiles` — static file serving with content-hashed URLs
+   - `contrib/apidocs` — vendored Scalar OpenAPI documentation UI (serves a doc page over a `crud` spec)
    - `contrib/admin` — admin panel coordinator
    - `contrib/jobs` — Den-backed background job queue (SQLite + PostgreSQL)
    - `contrib/sse` — Server-Sent Events
