@@ -54,6 +54,7 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. P
 
 - **Handler signatures**: must use `burrow.HandlerFunc` signature, registered via `burrow.Handle(fn)`
 - **Context helpers**: getter = short noun (no `FromContext` suffix), setter = `WithX`, keys = unexported struct types
+- **Request scheme**: HTTPS-dependent logic (Secure cookies, scheme-derived URLs, HSTS) uses `burrow.RequestIsHTTPS(r)`, not a raw `r.TLS` or base-URL check — flag hand-rolled scheme detection that breaks behind a reverse proxy
 - **Config flags**: naming (`{appname}-{property}`), sourcing (`burrow.FlagSources`)
 - **Repository**: concrete structs, `den.ErrNotFound` checks, `?TableAlias` in Relation queries
 - **Renderer interfaces**: method signatures, `*Page` suffix for page-rendering methods

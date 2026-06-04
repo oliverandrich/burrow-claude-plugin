@@ -100,6 +100,7 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. T
 
 - **Handlers**: `func(w http.ResponseWriter, r *http.Request) error` — register via `burrow.Handle(fn)`
 - **Context helpers**: getter = short noun (`Token(ctx)`), setter = `WithX(ctx, val)`, keys = unexported struct types
+- **Request scheme**: derive HTTPS from `burrow.RequestIsHTTPS(r)` (honors a trusted reverse proxy's `X-Forwarded-Proto`; see `--forwarded-mode`), never raw `r.TLS` — Secure cookies and scheme-derived URLs must be correct behind a TLS-terminating proxy
 - **Repository**: concrete struct with `*den.DB`, no interfaces, instantiate in `Configure()`
 - **Testing**: `burrowtest.DB(t)`, testify, real SQLite, no repo mocking
 - **Templates**: `{{ define "appname/templatename" }}`, static funcs → `HasFuncMap`, request funcs → `HasRequestFuncMap`
