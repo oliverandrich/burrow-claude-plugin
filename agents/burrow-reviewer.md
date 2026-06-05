@@ -56,6 +56,7 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. P
 - **Context helpers**: getter = short noun (no `FromContext` suffix), setter = `WithX`, keys = unexported struct types
 - **Request scheme**: HTTPS-dependent logic (Secure cookies, scheme-derived URLs, HSTS) uses `burrow.RequestIsHTTPS(r)`, not a raw `r.TLS` or base-URL check — flag hand-rolled scheme detection that breaks behind a reverse proxy
 - **Config flags**: naming (`{appname}-{property}`), sourcing (`burrow.FlagSources`)
+- **Batch enqueue**: flag request-path loops calling `Enqueue` per item for same-type fan-out — use `EnqueueBatch`/`EnqueueBatchAt` (burrow v0.30+)
 - **Repository**: concrete structs, `den.ErrNotFound` checks, `?TableAlias` in Relation queries
 - **Renderer interfaces**: method signatures, `*Page` suffix for page-rendering methods
 - **Templates**: `{{ define "appname/..." }}` namespacing, camelCase function names

@@ -102,6 +102,7 @@ Refer to the fetched llms-full.txt docs for the complete convention reference. T
 - **Context helpers**: getter = short noun (`Token(ctx)`), setter = `WithX(ctx, val)`, keys = unexported struct types
 - **Request scheme**: derive HTTPS from `burrow.RequestIsHTTPS(r)` (honors a trusted reverse proxy's `X-Forwarded-Proto`; see `--forwarded-mode`), never raw `r.TLS` — Secure cookies and scheme-derived URLs must be correct behind a TLS-terminating proxy
 - **Repository**: concrete struct with `*den.DB`, no interfaces, instantiate in `Configure()`
+- **Batch enqueue**: N same-type jobs enqueue via `task.EnqueueBatch(ctx, payloads)` — never a loop of singular `Enqueue` on the request path
 - **Testing**: `burrowtest.DB(t)`, testify, real SQLite, no repo mocking
 - **Templates**: `{{ define "appname/templatename" }}`, static funcs → `HasFuncMap`, request funcs → `HasRequestFuncMap`
 - **Config flags**: `{appname}-{property}` kebab, env `{APPNAME}_{PROPERTY}`, TOML `{appname}.{property}`

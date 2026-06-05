@@ -28,7 +28,7 @@ You are configuring this project for optimal use with the burrow Claude Code plu
    - `contrib/staticfiles` — static file serving with content-hashed URLs
    - `contrib/apidocs` — vendored Scalar OpenAPI documentation UI (serves a doc page over a `crud` spec)
    - `contrib/admin` — admin panel coordinator
-   - `contrib/jobs` — Den-backed background job queue (SQLite + PostgreSQL); reports worker liveness to `/healthz/ready` and a worker-status panel in the admin UI
+   - `contrib/jobs` — Den-backed background job queue (SQLite + PostgreSQL); batch enqueue (`EnqueueBatch`), worker liveness on `/healthz/ready`, and a worker-status panel in the admin UI
    - `contrib/sse` — Server-Sent Events
    - `contrib/healthcheck` — `/healthz/live` + `/healthz/ready` (the readiness probe aggregates every app implementing `ReadinessChecker`)
    - `contrib/humanize` — locale-aware template formatting (naturaltime, intcomma, ...)
